@@ -52,7 +52,7 @@ this is only for hackers.
 
 ## Screenshot for us visual types?
 
-[](images/pendulum-1.jpg)
+![](images/pendulum-1.jpg)
 
 As you write or scroll either the textarea or the preview pane, the scroll positions are synchronised
 based on percentage. In case of images in the text, accuracy can be quite off, but it's possible to
