@@ -1,25 +1,30 @@
 <template>
 	<header>
-		<div class="container body">
+		<div :class="options.container">
 
-			<router-link class="logo" to="/">
-				<i class="mdi mdi-arrow-right-bold-hexagon-outline logo-icon"></i><span class="large-text">{{ options.title_short }}</span>
-			</router-link>
+			<div class="row">
+				<div class="col-12">
+					<div class="body">
+						<router-link class="logo" to="/">
+							<i class="mdi mdi-arrow-right-bold-hexagon-outline logo-icon"></i><span class="large-text">{{ options.title_short }}</span>
+						</router-link>
 
-			<nav>
+						<nav>
 
-				<ul>
-					<!-- <li v-for="item in menu" :class="item.class"><a :href="item.link" :class="item.link_class" :title="item.title">{{item.title}}</a></li> -->
+							<ul>
+								<!-- <li v-for="item in menu" :class="item.class"><a :href="item.link" :class="item.link_class" :title="item.title">{{item.title}}</a></li> -->
 
-					<router-link v-for="(item,index) in menu" :to="item.link" tag="li" :ref="item.title" :class="item.class">
-						<a :class="item.link_class">
-							<icon v-if="item.icon" :name="item.icon"></icon>
-							<span>{{item.title}}</span>
-						</a>
-					</router-link>
-				</ul>
-			</nav>
-
+								<router-link v-for="(item,index) in menu" :to="item.link" tag="li" :ref="item.title" :class="item.class">
+									<a :class="item.link_class">
+										<icon v-if="item.icon" :name="item.icon"></icon>
+										<span>{{item.title}}</span>
+									</a>
+								</router-link>
+							</ul>
+						</nav>
+					</div>
+				</div>
+			</div>
 		</div>
 	</header>
 </template>

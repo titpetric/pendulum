@@ -2,21 +2,23 @@
 	<div class="index-page">
 		<front-header></front-header>
 
-		<h3>Currently browsing: {{ path }}
+		<div class="container">
+			<h3>Currently browsing: {{ path }}
 
-		<div class="alert alert-danger" v-for="error in errors">{{error.message}}</div>
+			<div class="alert alert-danger" v-for="error in errors">{{error.message}}</div>
 
-		<table class="table">
-			<thead>
-				<th>Name</th>
-			</thead>
-			<tbody>
-				<tr v-for="item in files">
-					<td v-if="item.type === 'dir'"><router-link :to="item.path">{{ item.name }}</router-link></td>
-					<td v-else><router-link :to="'/edit'+item.path">{{ item.name }}</router-link></td>
-				</tr>
-			</tbody>
-		</table>
+			<table class="table">
+				<thead>
+					<th>Name</th>
+				</thead>
+				<tbody>
+					<tr v-for="item in files">
+						<td v-if="item.type === 'dir'"><router-link :to="item.path"><i class="mdi mdi-folder-outline"></i> {{ item.name }}/</router-link></td>
+						<td v-else><router-link :to="'/edit'+item.path"><i class="mdi mdi-file-document"></i> {{ item.name }}</router-link></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 
 		<front-footer></front-footer>
 	</div>

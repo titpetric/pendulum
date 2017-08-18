@@ -2,16 +2,26 @@
 	<div class="edit-page">
 		<front-header></front-header>
 
-		<h3>Editing: {{ file.path }} {{ file.name }}
+		<div class="container-fluid">
 
-		<div class="alert alert-danger" v-for="error in errors">{{error.message}}</div>
+			<div class="alert alert-danger" v-for="error in errors">{{error.message}}</div>
 
-		<div class="row">
-			<div class="col-6">
-				<textarea name="contents" :value="file.contents" @input="update"></textarea>
+
+			<div class="row heading">
+				<div class="col-6">
+					<b class="legend">Editing: {{ file.path }} {{ file.name }}</b>
+				</div>
+				<div class="col-6 tar">
+					<button @click="save" class="btn btn-primary btn-sm">Save</button>
+				</div>
 			</div>
-			<div class="col-6">
-				<div class="contents-preview" v-html="preview"></div>
+			<div class="row">
+				<div class="col-6">
+					<textarea name="contents" class="form-control textarea" :value="file.contents" @scroll="updateScrollTextarea" @input="update"></textarea>
+				</div>
+				<div class="col-6">
+					<div class="preview" v-html="preview" @scroll="updateScrollPreview"></div>
+				</div>
 			</div>
 		</div>
 
@@ -23,6 +33,8 @@
 import axios from 'axios'
 import marked from 'marked'
 
+var debounce = require('lodash.debounce')
+
 export default {
   data () {
     return {
@@ -32,7 +44,8 @@ export default {
         contents: ''
       },
       path: this.$route.path,
-      errors: []
+      errors: [],
+      cancelScroll: false
     }
   },
   computed: {
@@ -56,6 +69,31 @@ export default {
   methods: {
     update (e) {
       this.file.contents = e.target.value
+    },
+    updateScrollTextarea: debounce(function (e) {
+      if (this.cancelScroll) {
+        this.cancelScroll = false
+        return
+      }
+      this.cancelScroll = true
+      console.log('textarea')
+      var friend = this.$el.querySelector('.preview')
+      var offset = e.target.scrollTop / e.target.scrollHeight
+      friend.scrollTop = friend.scrollHeight * offset
+    }, 10),
+    updateScrollPreview: debounce(function (e) {
+      if (this.cancelScroll) {
+        this.cancelScroll = false
+        return
+      }
+      this.cancelScroll = true
+      console.log('preview')
+      var friend = this.$el.querySelector('.textarea')
+      var offset = e.target.scrollTop / e.target.scrollHeight
+      friend.scrollTop = friend.scrollHeight * offset
+    }, 10),
+    save (e) {
+      console.log(this.file)
     },
     loadContents (path, callback) {
       this.path = path
@@ -94,15 +132,22 @@ textarea {
 	min-height: 600px;
 }
 textarea,
-.contents-preview {
+.preview {
 	height: 70vh;
 	border: 1px solid #ccc;
 	border-radius: 5px;
 	padding: 15px;
 }
 
-.contents-preview {
+.preview {
 	max-height: 70vh;
 	overflow-y: scroll;
+}
+.heading {
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+.tar {
+	text-align: right;
 }
 </style>
