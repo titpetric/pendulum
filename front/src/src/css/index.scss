@@ -1,0 +1,62 @@
+/* Import bootstrap styles from npm package */
+
+@import '~bootstrap/scss/bootstrap-reboot.scss';
+@import '~bootstrap/scss/bootstrap-grid.scss';
+
+@import '~bootstrap/scss/_alert.scss';
+@import '~bootstrap/scss/_badge.scss';
+@import '~bootstrap/scss/_buttons.scss';
+@import '~bootstrap/scss/_button-group.scss';
+@import '~bootstrap/scss/_forms.scss';
+@import '~bootstrap/scss/_nav.scss';
+@import '~bootstrap/scss/_navbar.scss';
+@import '~bootstrap/scss/_tables.scss';
+@import '~bootstrap/scss/_input-group.scss';
+
+.no-gutter {
+	margin: 0;
+}
+.no-gutter > [class*='col-'] {
+	padding-right:0;
+	padding-left:0;
+}
+
+.main-content {
+	padding: 24px;
+	height: 100%;
+	background: #fff;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+*, .normal-text {
+	font-family: 'Raleway', sans-serif;
+	font-weight: 500;
+	font-size: 21px;
+}
+
+h1, h2, h3, h4, h5, h6, .large-text {
+	font-family: 'Montserrat', sans-serif;
+	font-weight: 900;
+}
+
+h1 {
+	font-size: 2.0em;
+}
+h2 {
+	font-size: 1.8em;
+}
+h3 {
+	font-size: 1.6em;
+}
+h4 {
+	font-size: 1.4em;
+}
+h5 {
+	font-size: 1.2em;
+}
+h6 {
+	font-size: 1.0em;
+}
