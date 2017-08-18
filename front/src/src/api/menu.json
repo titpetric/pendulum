@@ -1,16 +1,11 @@
 {
 	"front": {
 		"header": [
-			{ "link": "/product/features", "title": "Features" },
-			{ "link": "/product/pricing", "title": "Pricing" },
 			{ "class": "right", "link": "/auth/login", "title": "Log in" },
 			{ "class": "right", "link": "/auth/register", "link_class": "btn btn-secondary", "title": "Get started" }
 		],
 		"footer": [
-			{ "link": "/pages/contact", "title": "Contact us" },
-			{ "link": "/pages/terms", "title": "Terms of use" },
-			{ "link": "/pages/privacy", "title": "Privacy policy" },
-			{ "link": "/pages/about", "title": "© Tit Petric s.p." }
+			{ "link": "https://scene-si.org", "title": "© Tit Petric s.p." }
 		]
 	}
 }

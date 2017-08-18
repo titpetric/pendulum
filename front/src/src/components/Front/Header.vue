@@ -6,7 +6,7 @@
 				<div class="col-12">
 					<div class="body">
 						<router-link class="logo" to="/">
-							<i class="mdi mdi-arrow-right-bold-hexagon-outline logo-icon"></i><span class="large-text">{{ options.title_short }}</span>
+							<i :class="'mdi mdi-' + options.logo_icon + ' logo-icon'"></i><span class="large-text">{{ options.title_short }}</span>
 						</router-link>
 
 						<nav>

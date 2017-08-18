@@ -1,8 +1,8 @@
 {
 	"options": {
-		"title": "My SaaS Project",
-		"title_short": "SaaS",
-		"container": "container-fluid",
-		"mailchimp": "https://scene-si.us16.list-manage.com/subscribe/post?u=3f2003f6eec718a1959d3e691&id=b5067deea9"
+		"title": "Pendulum",
+		"title_short": "Pendulum",
+		"logo_icon": "scale-balance",
+		"container": "container-fluid"
 	}
 }
