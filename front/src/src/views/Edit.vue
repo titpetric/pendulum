@@ -1,19 +1,20 @@
 <template>
 	<div class="edit-page">
-		<front-header></front-header>
-
 		<div class="container-fluid">
 
 			<div class="alert alert-danger" v-for="error in errors">{{error.message}}</div>
 
-
 			<div class="row heading">
 				<div class="col-12">
-					<b class="legend">Editing: {{ file.path }} {{ file.name }}</b>
-					<button @click="save" class="btn btn-primary btn-sm">Save</button>
+					<logo></logo> <b class="legend">{{ file.path }}</b>
+					<div class="actions">
+						<button @click="save" class="btn btn-primary btn-sm">Save</button>
+						<button @click="close" class="btn btn-secondary btn-sm">Close</button>
+					</div>
 				</div>
 			</div>
-			<div class="row">
+
+			<div class="row fill-height">
 				<div class="col-6">
 					<textarea name="contents" class="form-control textarea" v-model="file.contents" @scroll="updateScrollTextarea" @input="update"></textarea>
 				</div>
@@ -22,8 +23,6 @@
 				</div>
 			</div>
 		</div>
-
-		<front-footer></front-footer>
 	</div>
 </template>
 
@@ -37,18 +36,26 @@ export default {
   data () {
     return {
       file: {
+        dir: '',
         name: '',
         path: '',
         contents: ''
       },
       path: this.$route.path,
       errors: [],
-      cancelScroll: false
+      cancelScroll: false,
+      saved: true
     }
   },
   computed: {
     preview: function () {
-      return marked(this.file.contents, { sanitize: true })
+      var contents = this.file.contents
+      contents = contents.replace(/!\[\]\(/g, '![](/contents' + this.file.dir + '/')
+      // Leanpub markdown
+      contents = contents.replace(/A>/g, '>')
+      window.contents = contents
+      console.log(contents)
+      return marked(contents, { sanitize: true })
     }
   },
   beforeRouteLeave (to, from, next) {
@@ -66,8 +73,7 @@ export default {
   },
   methods: {
     update (e) {
-      // this.file.contents = e.target.value
-      console.log('typing...')
+      this.saved = false
       this.cancelScroll = false
       this.updateScrollTextarea()
     },
@@ -77,11 +83,10 @@ export default {
         return
       }
       this.cancelScroll = true
-      console.log('textarea')
       var friend = this.$el.querySelector('.preview')
       var self = this.$el.querySelector('.textarea')
-      var offset = self.scrollTop / self.scrollHeight
-      friend.scrollTop = friend.scrollHeight * offset
+      var offset = self.scrollTop / (self.scrollHeight - self.clientHeight)
+      friend.scrollTop = (friend.scrollHeight - friend.clientHeight) * offset
     }, 10),
     updateScrollPreview: debounce(function (e) {
       if (this.cancelScroll) {
@@ -89,22 +94,54 @@ export default {
         return
       }
       this.cancelScroll = true
-      console.log('preview')
       var friend = this.$el.querySelector('.textarea')
-      var offset = self.scrollTop / self.scrollHeight
-      friend.scrollTop = friend.scrollHeight * offset
+      var self = this.$el.querySelector('.preview')
+      var offset = self.scrollTop / (self.scrollHeight - self.clientHeight)
+      friend.scrollTop = (friend.scrollHeight - friend.clientHeight) * offset
     }, 10),
-    save (e) {
-      console.log(this.file)
+    save () {
+      this.saveContents(this.$route.path)
+    },
+    close () {
+      if (this.saved || confirm('You have unsaved changes, discard them?')) {
+        this.$router.go(-1)
+      }
+    },
+    saveContents (path, callback) {
+      this.path = path
+      this.errors = []
+      var params = new FormData()
+      params.append('contents', this.file.contents)
+      var link = '/api/store' + path.replace('edit/', '')
+      return axios
+        .post(link, params)
+        .then(response => {
+          if ('error' in response.data) {
+            this.errors = [ response.data.error ]
+          } else {
+            this.saved = true
+          }
+          if (typeof callback === 'function') {
+            callback()
+          }
+        })
+        .catch(err => {
+          this.errors = [
+            { message: err }
+          ]
+          if (typeof callback === 'function') {
+            callback()
+          }
+        })
     },
     loadContents (path, callback) {
       this.path = path
+      this.errors = []
       var params = {}
       var link = '/api/read' + path.replace('edit/', '')
       return axios
         .get(link, params)
         .then(response => {
-          console.log(response.data)
           if ('error' in response.data) {
             this.errors = [ response.data.error ]
           } else {
@@ -131,30 +168,56 @@ export default {
 <style lang="scss">
 .edit-page {
 	.container-fluid {
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
 		padding-top: 1em;
 		padding-bottom: 1em;
 	}
-	textarea {
-		width: 100%;
-		min-height: 600px;
+	.fill-height {
+		flex: 1;
 	}
-	textarea, .preview {
-		height: 70vh;
+	.textarea, .textarea:focus {
+		background: #263238;
+		color: #eee;
+		width: 100%;
+		font-family: monospace;
+	}
+	.textarea, .preview {
+		height: 100%;
 		border: 1px solid #ccc;
 		border-radius: 5px;
 		padding: 15px;
 	}
 	.preview {
-		max-height: 70vh;
 		overflow-y: scroll;
 		img {
 			max-width: 100%;
+		}
+		blockquote {
+			border-left: 3px solid #ccc;
+			padding-left: 10px;
+		}
+		code {
+			background: #eee;
+			color: #933;
+			padding: 2px 4px;
+		}
+		pre > code {
+			background: #263238;
+			color: #eee;
+			font-size: 0.9em;
+			line-height: 1.2;
+			display: block;
+			padding: 10px;
+			border-radius: 3px;
+			border: 1px solid #ccc;
 		}
 	}
 	.heading {
 		padding-bottom: 1em;
 	}
-	.btn-primary {
+	.actions {
 		float: right;
 	}
 }
