@@ -79,7 +79,11 @@ class API {
 			return array("error" => array("message" => "Directory traversal? For shame."));
 		}
 
-		$contents = $_POST['contents'];
+		if (!is_writable($path)) {
+			return array("error" => array("message" => "Path/file not writable: " . str_replace($this->folder, "", $path)));
+		}
+
+		$contents = str_replace("\r", "", $_POST['contents']);
 		file_put_contents($path, $contents);
 
 		$path_relative = str_replace($this->folder . "/", "", $path);
