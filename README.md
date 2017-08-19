@@ -52,7 +52,7 @@ this is only for hackers.
 
 ## Screenshot for us visual types?
 
-![](images/pendulum-1.jpg)
+![](images/pendulum.png)
 
 As you write or scroll either the textarea or the preview pane, the scroll positions are synchronised
 based on percentage. In case of images in the text, accuracy can be quite off, but it's possible to
@@ -67,16 +67,16 @@ improve this behaviour in the future.
 - [ ] (partially done) Add support for some of Leanpub syntax (`A>`, page break,...),
 - [ ] Add support for some of Hugo syntax (`<!--more-->`, metadata, ...),
 - [x] Actually save the contents that are being edited (client-side ajax),
-- [ ] Check if git has user.name && user.email set before commiting
+- [ ] Check if git has user.name && user.email set before commiting with git
 - [x] Support images with relative links in rendering
 - [ ] More markdown styling (done: blockquote, code, image, needs: tables,...)
+- [ ] Docker image for delivery
+- [ ] Go server for delivery, windows
 
 Most of the development is basically related with the preview of whatever it is you're
 editing. The editor itself doesn't care about anything other than the contents of the text
-file you're opening and trying to save. Simple.
-
-I guess unit testing should be somewhere on the list, if this thing ever gets
-any traction.
+file you're opening and trying to save. Simple. I guess unit testing should be somewhere
+on the list, if this thing ever gets any traction.
 
 ## Thanks
 
