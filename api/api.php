@@ -35,9 +35,10 @@ class API {
 		$paths = glob($path . '/*', GLOB_MARK);
 		foreach ($paths as $k => $path) {
 			$type = substr($path, -1) === '/' ? "dir" : "file";
+			$last_modified = date("r", filemtime($path));
 			$name = basename($path);
 			$path = str_replace($this->folder, "", $path);
-			$paths[$k] = compact("type", "path", "name");
+			$paths[$k] = compact("type", "path", "name", "last_modified");
 		}
 		foreach ($paths as $path) {
 			if ($path['type'] === "dir") {
