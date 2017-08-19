@@ -85,3 +85,7 @@ If you want to thank me, please consider buying a book or three:
 - [The SaaS Handbook](https://leanpub.com/saas-handbook)
 
 This project exists only because of the last book on the list.
+
+## License
+
+The code is provided under a permit-everything license, WTFPL.
