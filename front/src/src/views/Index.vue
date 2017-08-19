@@ -1,26 +1,28 @@
 <template>
 	<div class="index-page">
-		<front-header></front-header>
-
-		<div class="container">
-			<h3>Currently browsing: {{ path }}
+		<div class="container-fluid">
+			<div class="row heading">
+				<div class="col-12">
+					<logo></logo> <b>{{ path }}</b>
+				</div>
+			</div>
 
 			<div class="alert alert-danger" v-for="error in errors">{{error.message}}</div>
 
 			<table class="table">
 				<thead>
 					<th>Name</th>
+					<th>Last modified</th>
 				</thead>
 				<tbody>
 					<tr v-for="item in files">
 						<td v-if="item.type === 'dir'"><router-link :to="item.path"><i class="mdi mdi-folder-outline"></i> {{ item.name }}/</router-link></td>
 						<td v-else><router-link :to="'/edit'+item.path"><i class="mdi mdi-file-document"></i> {{ item.name }}</router-link></td>
+						<td class="tar">{{ item.last_modified }}</td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
-
-		<front-footer></front-footer>
 	</div>
 </template>
 
@@ -79,3 +81,15 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.index-page {
+	.container-fluid {
+		padding-top: 1em;
+		padding-bottom: 1em;
+	}
+	.heading {
+		padding-bottom: 1em;
+	}
+}
+</style>
