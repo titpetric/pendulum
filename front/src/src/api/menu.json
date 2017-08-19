@@ -1,8 +1,6 @@
 {
 	"front": {
 		"header": [
-			{ "class": "right", "link": "/auth/login", "title": "Log in" },
-			{ "class": "right", "link": "/auth/register", "link_class": "btn btn-secondary", "title": "Get started" }
 		],
 		"footer": [
 			{ "link": "https://scene-si.org", "title": "© Tit Petric s.p." }
