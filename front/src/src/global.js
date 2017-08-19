@@ -12,7 +12,7 @@ Vue.config.productionTip = false
 // Global Vue components
 
 addComponents([
-  'Front/Header'
+  'Logo'
 ])
 
 /** Map component path into component name (Front/Header.vue -> <front-header>) */
