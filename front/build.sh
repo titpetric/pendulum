@@ -1,12 +1,11 @@
 #!/bin/bash
 cd src
 if [ ! -d "node_modules" ]; then
-	yarn install
-	npm rebuild node-sass
+	npm install
 fi
 set -e
-yarn lint
-yarn build
+npm run lint
+npm run build
 rsync -a --del src/api/ dist/api/
 set +e
 cd ..
