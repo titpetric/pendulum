@@ -65,6 +65,7 @@ class API {
 		$response = [
 			"name" => basename($path),
 			"path" => str_replace($this->folder, "", $path),
+			"dir" => str_replace($this->folder, "", dirname($path)),
 			"contents" => file_get_contents($path)
 		];
 		return compact("response");
@@ -90,9 +91,7 @@ class API {
 
 		$folder = $path;
 		$response = [
-			"name" => basename($path),
-			"path" => str_replace($this->folder, "", $path),
-			"contents" => file_get_contents($path)
+			"status" => "OK"
 		];
 		$i = 0;
 		do {
@@ -105,7 +104,7 @@ class API {
 			if (is_dir($folder . "/.git")) {
 				chdir(dirname($path));
 				$retval = array();
-				exec("git add " . $response['name'], $retval);
+				exec("git add " . basename($path), $retval);
 				exec("git commit -m 'Edited online at " . date("r") . " from " . addslashes($_SERVER['REMOTE_ADDR']) . "@" . php_uname("n") . "'", $retval);
 				$response['log'] = $retval;
 				break;
