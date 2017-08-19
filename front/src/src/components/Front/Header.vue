@@ -84,9 +84,10 @@ a.logo {
 	&:hover {
 		text-decoration: none;
 	}
-	.mdi {
+	.logo-icon {
 		color: #c44;
 		font-size: 2.5em;
+		margin-right: 0.1em;
 	}
 	.large-text {
 		color: #c44;
