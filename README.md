@@ -64,10 +64,12 @@ improve this behaviour in the future.
 - [x] Navigation of folders and files on the front-end,
 - [x] Editor component with synchronised scrolling with preview,
 - [x] Marked preview,
-- [ ] Add support for some of Leanpub syntax (`A>`, page break,...),
+- [ ] (partially done) Add support for some of Leanpub syntax (`A>`, page break,...),
 - [ ] Add support for some of Hugo syntax (`<!--more-->`, metadata, ...),
-- [ ] Actually save the contents that are being edited (client-side ajax),
-- [ ] Support images with relative links in rendering (client-side js)
+- [x] Actually save the contents that are being edited (client-side ajax),
+- [ ] Check if git has user.name && user.email set before commiting
+- [x] Support images with relative links in rendering
+- [ ] More markdown styling (done: blockquote, code, image, needs: tables,...)
 
 Most of the development is basically related with the preview of whatever it is you're
 editing. The editor itself doesn't care about anything other than the contents of the text
