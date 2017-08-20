@@ -12,7 +12,7 @@
 			<table class="table">
 				<thead>
 					<th>Name</th>
-					<th>Last modified</th>
+					<th class="tar">Last modified</th>
 				</thead>
 				<tbody>
 					<tr v-for="item in files">
