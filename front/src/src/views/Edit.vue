@@ -2,17 +2,18 @@
 	<div class="edit-page">
 		<div class="container-fluid">
 
-			<div class="alert alert-danger" v-for="error in errors">{{error.message}}</div>
-
 			<div class="row heading">
 				<div class="col-12">
 					<logo></logo> <b class="legend">{{ file.path }}</b>
 					<div class="actions">
+						<span class="badge badge-success" v-for="state in states">{{state.message}}</span>
 						<button @click="save" class="btn btn-primary btn-sm">Save</button>
 						<button @click="close" class="btn btn-secondary btn-sm">Close</button>
 					</div>
 				</div>
 			</div>
+
+			<div class="alert alert-danger" v-for="error in errors">{{error.message}}</div>
 
 			<div class="row fill-height">
 				<div class="col-6">
@@ -43,6 +44,7 @@ export default {
       },
       path: this.$route.path,
       errors: [],
+      states: [],
       cancelScroll: false,
       saved: true
     }
@@ -110,6 +112,7 @@ export default {
     saveContents (path, callback) {
       this.path = path
       this.errors = []
+      this.states = []
       var params = new FormData()
       params.append('contents', this.file.contents)
       var link = '/api/store' + path.replace('edit/', '')
@@ -119,6 +122,10 @@ export default {
           if ('error' in response.data) {
             this.errors = [ response.data.error ]
           } else {
+            this.states = [ { message: 'Saved: ' + response.data.response.status } ]
+            setTimeout(e => {
+              this.states = []
+            }, 5000)
             this.saved = true
           }
           if (typeof callback === 'function') {
@@ -219,6 +226,9 @@ export default {
 	}
 	.actions {
 		float: right;
+	}
+	.badge {
+		margin-right: 1em;
 	}
 }
 </style>
