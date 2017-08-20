@@ -6,5 +6,9 @@ ARG GITVERSION=development
 ARG GITTAG=development
 ENV GITVERSION=${GITVERSION} GITTAG=${GITTAG}
 
-ADD ./build/pendulum /pendulum
-ENTRYPOINT ["/pendulum"]
+ADD ./front/src/dist/ /app/public_html/
+ADD ./build/pendulum /app/pendulum
+
+WORKDIR /app
+
+ENTRYPOINT ["/app/pendulum"]
