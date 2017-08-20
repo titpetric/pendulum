@@ -1,2 +1,3 @@
 #!/bin/bash
-docker run --name pendulum --restart=always -p 8080:8080 -d -v $(pwd):/app -w /app alpine:3.5 ./pendulum -port 8080
+docker rm -f pendulum
+docker run --name pendulum --restart=always -p 8080:8080 -d -v $(pwd)/contents:/app/public_html/contents titpetric/pendulum -port 8080
