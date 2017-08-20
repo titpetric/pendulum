@@ -5,6 +5,35 @@ anywhere (git add, git commit). Choice of back-ends: Go or PHP.
 
 Written by [@TitPetric](https://twitter.com/TitPetric) and licensed under the permissive [WTFPL](http://www.wtfpl.net/txt/copying/).
 
+[![Codeship Status for titpetric/pendulum](https://app.codeship.com/projects/88ecf220-6806-0135-7d43-4a6204a3e72a/status?branch=master)](https://app.codeship.com/projects/241162)
+
+## Running it in docker
+
+To run it in Docker:
+
+~~~
+docker run -d --name pendulum \
+	--restart=always \
+	-p 8080:8080 \
+	-v $(pwd):/app/public_html/contents \
+	titpetric/pendulum -port 8080
+~~~
+
+This will expose your current directory to Pendulum for editing. You can open the interface on
+[http://localhost/](http://localhost/) and start editing those files right away.
+
+## Screenshot
+
+![](images/pendulum.png)
+
+As you write or scroll either the textarea or the preview pane, the scroll positions are synchronised
+based on percentage. In case of images in the text, accuracy can be quite off, but it's possible to
+improve this behaviour in the future.
+
+Most of the development is basically related with the preview of whatever it is you're
+editing. The editor itself doesn't care about anything other than the contents of the text
+file you're opening and trying to save.
+
 ## Thanks
 
 If you want to thank me, please consider buying a book or three:
@@ -73,22 +102,6 @@ go run *.go -port 8080
 > need to setup and configure a nginx server, so there's that benefit.
 
 
-## Docker
-
-A Docker image is planned, check back shortly.
-
-## Screenshot for us visual types?
-
-![](images/pendulum.png)
-
-As you write or scroll either the textarea or the preview pane, the scroll positions are synchronised
-based on percentage. In case of images in the text, accuracy can be quite off, but it's possible to
-improve this behaviour in the future.
-
-Most of the development is basically related with the preview of whatever it is you're
-editing. The editor itself doesn't care about anything other than the contents of the text
-file you're opening and trying to save.
-
 ## Status
 
 - [x] Full API for list, read and store,
@@ -102,8 +115,9 @@ file you're opening and trying to save.
 - [x] Support images with relative links in rendering
 - [x] Display images from preview markdown pane
 - [ ] More markdown styling (done: blockquote, code, image, needs: tables,...)
-- [ ] Docker image for delivery
+- [x] Docker image for delivery
 - [x] Go server for delivery
+- [x] Git support from Go / Docker
 - [ ] Downloadable builds on GitHub (Codeship, GH releases, semver, Windows exe's)
 
 I guess unit testing should be somewhere on the list, if this thing ever gets any traction.
