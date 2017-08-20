@@ -1,4 +1,0 @@
-#!/bin/bash
-set -e
-go build main.go main_api.go
-./main -port 8080

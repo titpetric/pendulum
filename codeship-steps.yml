@@ -1,0 +1,12 @@
+- type: serial
+  tag: master
+  service: pendulum
+  steps:
+    - name: 'prepare'
+      command: ./codeship-build.sh prepare
+    - name: 'build go'
+      command: ./codeship-build.sh build-go
+    - name: 'build docker'
+      command: ./codeship-build.sh build-docker
+    - name: 'release'
+      command: ./codeship-release.sh

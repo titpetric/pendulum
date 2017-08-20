@@ -1,0 +1,7 @@
+FROM golang:1.8-alpine
+
+MAINTAINER Tit Petric <black@scene-si.org>
+
+RUN apk --update add bash make docker && go get -u github.com/aktau/github-release
+
+WORKDIR /go/src/app
