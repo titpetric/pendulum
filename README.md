@@ -1,12 +1,24 @@
 # Pendulum
 
 A simple editor for markdown/txt files. Supports commiting changes into git repositories hosted
-anywhere (git add, git commit).
+anywhere (git add, git commit). Choice of back-ends: Go or PHP.
+
+Written by [@TitPetric](https://twitter.com/TitPetric) and licensed under the permissive [WTFPL](http://www.wtfpl.net/txt/copying/).
+
+## Thanks
+
+If you want to thank me, please consider buying a book or three:
+
+- [API Foundations in Go](https://leanpub.com/api-foundations)
+- [12 Factor Applications with Docker and Go](https://leanpub.com/12fa-docker-golang)
+- [The SaaS Handbook](https://leanpub.com/saas-handbook)
+
+This project exists only because of the last book on the list.
 
 ## Why did I make this?
 
-There's a distinct lack of friendly sollutions that just let you point to a folder and edit a bunch
-of text or markdown files. I wrote about three books on Leanpub (see below), and it was useful to
+There's a distinct lack of friendly solutions that just let you point to a folder and edit a bunch
+of text or markdown files. I wrote about three books on Leanpub (see above), and it was useful to
 provide me with a way to review those markdown files. I'm also blogging with Hugo, used to blog with
 Hexo, have some Jekyll files for my GitHub page, and I tend to write documentation with MkDocs.
 That's about five systems which I actively write content into and those are just the public ones.
@@ -20,18 +32,13 @@ There's a very simple API that powers the editor. The API provides exactly three
 3. `/api/store` - stores a single file contents (can create new files)
 
 It operates exclusively on the `contents` folder and the files you provide in there. The editor
-doesn't care what kind of files you put there. It's just going to have some difficulty with image
-tags, but maybe I'll work on that in the future? :)
+doesn't care what kind of files you put there, currently only files starting with a dot are excluded,
+ie, `.git`, `.gitignore`,...
 
-**Note**: the store API call honors git repositories. In case the file you are editing is located
-in a git repository, Pendulum will add and commit this file when you save it. This way a full
-roll-back history is provided, should you ever need it.
+## PHP API
 
-The API is implemented in PHP, using [Slim](https://www.slimframework.com/). It would be trivial
-to implement the same api in Go or Node, and I might do it in the future. If you'd like that, let
-me know on Twitter [@TitPetric](https://twitter.com/TitPetric).
-
-Nginx configuration should look something like this:
+You can use either the Go API or the PHP API. With the PHP API you'll need to provide a HTTP server
+in front of the app. The configuration for Nginx should look something like this:
 
 ~~~
 location /api {
@@ -47,8 +54,28 @@ location / {
 }
 ~~~
 
-I'm planning a Docker image as well, which would take away some of the pain. Currently
-this is only for hackers.
+> **Note**: the PHP API call honors git repositories. In case the file you are editing is located
+> in a git repository, Pendulum will add and commit this file when you save it. This way a full
+> roll-back history is provided, should you ever need it.
+
+The PHP API is implemented in PHP, using [Slim](https://www.slimframework.com/). Tested with PHP7.
+
+## Go server + API
+
+A full HTTP server is implemented with Go. By default it listens on port 80, but it's trivial
+to change this, just by passing the `-port` option when you run it.
+
+~~~
+go run *.go -port 8080
+~~~
+
+> **Note**: Unlike the PHP API, this doesn't implement git versioning, yet. But you also don't
+> need to setup and configure a nginx server, so there's that benefit.
+
+
+## Docker
+
+A Docker image is planned, check back shortly.
 
 ## Screenshot for us visual types?
 
@@ -57,6 +84,10 @@ this is only for hackers.
 As you write or scroll either the textarea or the preview pane, the scroll positions are synchronised
 based on percentage. In case of images in the text, accuracy can be quite off, but it's possible to
 improve this behaviour in the future.
+
+Most of the development is basically related with the preview of whatever it is you're
+editing. The editor itself doesn't care about anything other than the contents of the text
+file you're opening and trying to save.
 
 ## Status
 
@@ -69,25 +100,10 @@ improve this behaviour in the future.
 - [x] Actually save the contents that are being edited (client-side ajax),
 - [ ] Check if git has user.name && user.email set before commiting with git
 - [x] Support images with relative links in rendering
+- [x] Display images from preview markdown pane
 - [ ] More markdown styling (done: blockquote, code, image, needs: tables,...)
 - [ ] Docker image for delivery
-- [ ] Go server for delivery, windows
+- [x] Go server for delivery
+- [ ] Downloadable builds on GitHub (Codeship, GH releases, semver, Windows exe's)
 
-Most of the development is basically related with the preview of whatever it is you're
-editing. The editor itself doesn't care about anything other than the contents of the text
-file you're opening and trying to save. Simple. I guess unit testing should be somewhere
-on the list, if this thing ever gets any traction.
-
-## Thanks
-
-If you want to thank me, please consider buying a book or three:
-
-- [API Foundations in Go](https://leanpub.com/api-foundations)
-- [12 Factor Applications with Docker and Go](https://leanpub.com/12fa-docker-golang)
-- [The SaaS Handbook](https://leanpub.com/saas-handbook)
-
-This project exists only because of the last book on the list.
-
-## License
-
-The code is provided under a permit-everything license, WTFPL.
+I guess unit testing should be somewhere on the list, if this thing ever gets any traction.
