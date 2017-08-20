@@ -29,7 +29,7 @@ func main() {
 	flag.Parse()
 
 	api := API{
-		Path: "./contents",
+		Path: "./public_html/contents",
 	}
 
 	http.HandleFunc("/api/list/", api.ListHandler)
