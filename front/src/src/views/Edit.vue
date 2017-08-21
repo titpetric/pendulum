@@ -35,6 +35,7 @@ import axios from 'axios'
 import VueMarkdown from 'vue-markdown'
 
 var debounce = require('lodash.debounce')
+var markdown = require('@/../markdown')
 
 export default {
   data () {
@@ -61,7 +62,7 @@ export default {
       contents = contents.replace(/!\[([^\]]*)\]\(/g, '![$1](/contents' + this.file.dir + '/')
       // Leanpub markdown
       contents = contents.replace(/A>/g, '>')
-      return contents
+      return markdown.Transform(contents)
     }
   },
   beforeRouteLeave (to, from, next) {
@@ -233,6 +234,25 @@ export default {
 	}
 	.badge {
 		margin-right: 1em;
+	}
+
+	hr.pagebreak {
+        	background: #777;
+	        position: relative;
+	        text-align: center;
+	}
+	hr.pagebreak:after {
+        	color: #777;
+		display: inline;
+		content: "Pagebreak";
+		text-align: center;
+		top: -18px;
+		font-size: 14px;
+		font-style: italic;
+		background: #fff;
+		position: relative;
+		padding: 0 10px;
+		white-space: nowrap;
 	}
 }
 </style>
