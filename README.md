@@ -22,6 +22,27 @@ docker run -d --name pendulum \
 This will expose your current directory to Pendulum for editing. You can open the interface on
 [http://localhost/](http://localhost/) and start editing those files right away.
 
+## Download executable
+
+There are binaries for 64bit Linux and Windows available on [the releases page](https://github.com/titpetric/pendulum/releases/latest).
+Usage is simple. Download the .tgz file, unpack the binary and run it with any options like this:
+
+~~~
+# ./pendulum -?
+flag provided but not defined: -?
+Usage of ./pendulum:
+  -contents string
+        Folder for display (default "./contents")
+  -port string
+        Port for server (default "80")
+~~~
+
+If you want to serve contents of a `test` folder on port 8081 you would run it as:
+
+~~~
+./pendulum -port 8081 -contents test
+~~~
+
 ## Screenshot
 
 ![](images/pendulum.png)
