@@ -1,0 +1,13 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/elazarl/go-bindata-assetfs",
+			"repository": "https://github.com/elazarl/go-bindata-assetfs",
+			"vcs": "git",
+			"revision": "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43",
+			"branch": "master",
+			"notests": true
+		}
+	]
+}
