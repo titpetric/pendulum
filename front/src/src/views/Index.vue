@@ -4,6 +4,10 @@
 			<div class="row heading">
 				<div class="col-12">
 					<logo></logo> <b>{{ path }}</b>
+
+					<div class="actions">
+						<button class="btn btn-sm btn-info" @click="create">New file</button>
+					</div>
 				</div>
 			</div>
 
@@ -19,7 +23,7 @@
 					<th class="tar">Last modified</th>
 				</thead>
 				<tbody>
-					<tr v-for="item in files">
+					<tr v-for="item in response.files">
 						<td v-if="item.type === 'dir'"><router-link :to="item.path"><i class="mdi mdi-folder-outline"></i> {{ item.name }}/</router-link></td>
 						<td v-else><router-link :to="'/edit'+item.path"><i class="mdi mdi-file-document"></i> {{ item.name }}</router-link></td>
 						<td class="tar">{{ item.last_modified }}</td>
@@ -38,7 +42,9 @@ export default {
     return {
       path: this.$route.path,
       errors: [],
-      files: []
+      response: {
+        files: []
+      }
     }
   },
   beforeRouteLeave (to, from, next) {
@@ -58,6 +64,12 @@ export default {
     back () {
       this.$router.go(-1)
     },
+    create () {
+      var filename = prompt('Enter new filename:')
+      if (filename.length > 0) {
+        this.$router.push('/edit' + this.path + filename)
+      }
+    },
     loadContents (path, callback) {
       this.path = path
       var params = {}
@@ -69,14 +81,16 @@ export default {
           if ('error' in response.data) {
             this.errors = [ response.data.error ]
           } else {
-            this.files = response.data.response.files
+            this.response = response.data.response
           }
           if (typeof callback === 'function') {
             callback()
           }
         })
         .catch(err => {
-          this.files = []
+          this.response = {
+            files: []
+          }
           this.errors = [
             { message: err }
           ]
@@ -105,6 +119,9 @@ export default {
 		border: 1px solid #ddd;
 		border-radius: 3px;
 		padding: 1px 3px;
+	}
+	.actions {
+		float: right;
 	}
 }
 </style>
