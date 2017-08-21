@@ -11,7 +11,11 @@
 
 			<table class="table">
 				<thead>
-					<th>Name</th>
+					<th>
+						<i class="mdi mdi-keyboard-return" v-if="path.length > 1" @click="back"></i>
+						<i class="mdi mdi-folder-open" v-else></i>
+						Name
+					</th>
 					<th class="tar">Last modified</th>
 				</thead>
 				<tbody>
@@ -51,6 +55,9 @@ export default {
     this.loadContents(this.$route.path)
   },
   methods: {
+    back () {
+      this.$router.go(-1)
+    },
     loadContents (path, callback) {
       this.path = path
       var params = {}

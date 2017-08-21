@@ -18,9 +18,9 @@ import (
 // Serves index.html in case the requested file isn't found (or some other os.Stat error)
 func serveIndex(serve http.Handler, fs assetfs.AssetFS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := fs.AssetInfo(path.Join("dist", r.URL.Path))
+		_, err := fs.AssetInfo(path.Join(fs.Prefix, r.URL.Path))
 		if err != nil {
-			contents, err := fs.Asset("dist/index.html")
+			contents, err := fs.Asset(path.Join(fs.Prefix, "index.html"))
 			w.Header().Set("Content-Type", "text/html")
 			if err != nil {
 				w.Write([]byte(fmt.Sprintf("%s", err)))

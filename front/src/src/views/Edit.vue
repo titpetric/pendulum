@@ -8,7 +8,7 @@
 					<div class="actions">
 						<span class="badge badge-success" v-for="state in states">{{state.message}}</span>
 						<button @click="save" class="btn btn-primary btn-sm">Save</button>
-						<button @click="close" class="btn btn-secondary btn-sm">Close</button>
+						<button @click="back" class="btn btn-secondary btn-sm">Close</button>
 					</div>
 				</div>
 			</div>
@@ -104,7 +104,7 @@ export default {
     save () {
       this.saveContents(this.$route.path)
     },
-    close () {
+    back () {
       if (this.saved || confirm('You have unsaved changes, discard them?')) {
         this.$router.go(-1)
       }
