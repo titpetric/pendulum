@@ -15,10 +15,9 @@
   },
   "dependencies": {
     "axios": "^0.16.2",
-    "jsonp": "^0.2.1",
     "lodash.debounce": "^4.0.8",
-    "marked": "^0.3.6",
     "vue": "^2.3.3",
+    "vue-markdown": "^2.2.4",
     "vue-router": "^2.6.0"
   },
   "devDependencies": {

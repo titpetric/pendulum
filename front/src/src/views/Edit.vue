@@ -20,7 +20,9 @@
 					<textarea name="contents" class="form-control textarea" v-model="file.contents" @scroll="updateScrollTextarea" @input="update"></textarea>
 				</div>
 				<div class="col-6">
-					<div class="preview" v-html="preview" @scroll="updateScrollPreview"></div>
+					<div class="preview" @scroll="updateScrollPreview">
+						<vue-markdown :source="preview"></vue-markdown>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -29,7 +31,8 @@
 
 <script>
 import axios from 'axios'
-import marked from 'marked'
+
+import VueMarkdown from 'vue-markdown'
 
 var debounce = require('lodash.debounce')
 
@@ -49,15 +52,16 @@ export default {
       saved: true
     }
   },
+  components: {
+    VueMarkdown
+  },
   computed: {
     preview: function () {
       var contents = this.file.contents
-      contents = contents.replace(/!\[\]\(/g, '![](/contents' + this.file.dir + '/')
+      contents = contents.replace(/!\[([^\]]*)\]\(/g, '![$1](/contents' + this.file.dir + '/')
       // Leanpub markdown
       contents = contents.replace(/A>/g, '>')
-      window.contents = contents
-      console.log(contents)
-      return marked(contents, { sanitize: true })
+      return contents
     }
   },
   beforeRouteLeave (to, from, next) {
