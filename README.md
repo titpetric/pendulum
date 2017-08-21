@@ -15,7 +15,7 @@ To run it in Docker:
 docker run -d --name pendulum \
 	--restart=always \
 	-p 8080:8080 \
-	-v $(pwd):/app/public_html/contents \
+	-v $(pwd):/app/contents \
 	titpetric/pendulum -port 8080
 ~~~
 
