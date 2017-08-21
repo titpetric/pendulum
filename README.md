@@ -132,7 +132,7 @@ go run *.go -port 8080
 - [ ] (partially done) Add support for some of Leanpub syntax (`A>`, page break,...),
 - [ ] Add support for some of Hugo syntax (`<!--more-->`, metadata, ...),
 - [x] Actually save the contents that are being edited (client-side ajax),
-- [ ] Check if git has user.name && user.email set before commiting with git
+- [x] Check if git has user.name && user.email set before commiting with git
 - [x] Add git support to Go API
 - [ ] Add option for HTTP auth
 - [ ] Deprecate/remove PHP API
@@ -147,5 +147,6 @@ go run *.go -port 8080
 - [x] Pack public_html data into release binary
 - [x] Downloadable builds on GitHub
 - [x] Windows build
+- [x] Create new files over front-end interface
 
 I guess unit testing should be somewhere on the list, if this thing ever gets any traction.
