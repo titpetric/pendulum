@@ -118,6 +118,10 @@ go run *.go -port 8080
 - [x] Docker image for delivery
 - [x] Go server for delivery
 - [x] Git support from Go / Docker
-- [ ] Downloadable builds on GitHub (Codeship, GH releases, semver, Windows exe's)
+- [x] Codeship CI,
+- [x] Semver (sort of),
+- [x] Pack public_html data into release binary
+- [x] Downloadable builds on GitHub
+- [x] Windows build
 
 I guess unit testing should be somewhere on the list, if this thing ever gets any traction.
