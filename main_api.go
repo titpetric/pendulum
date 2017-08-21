@@ -110,10 +110,21 @@ func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) Read(filePath string) (ReadResponse, error) {
-	response := ReadResponse{}
+	response := ReadResponse{
+		Location: Location{
+			Type:         "file",
+			Path:         filePath,
+			Name:         path.Base(filePath),
+			Dir:          path.Dir(filePath),
+			LastModified: time.Now().Format(time.UnixDate),
+		},
+	}
 	fullPath := path.Join(api.Path, filePath)
 	info, err := os.Stat(fullPath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return response, nil
+		}
 		return response, err
 	}
 	if !info.Mode().IsRegular() {
@@ -123,10 +134,6 @@ func (api *API) Read(filePath string) (ReadResponse, error) {
 	if err != nil {
 		return response, err
 	}
-	response.Type = "file"
-	response.Path = filePath
-	response.Name = path.Base(filePath)
-	response.Dir = path.Dir(filePath)
 	response.LastModified = info.ModTime().Format(time.UnixDate)
 	response.Contents = string(file)
 	return response, nil

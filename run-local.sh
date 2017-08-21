@@ -1,3 +1,3 @@
 #!/bin/bash
-set -e
+docker rm -f pendulum
 ./pendulum -port 8080
