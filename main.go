@@ -36,11 +36,12 @@ func serveIndex(serve http.Handler, fs assetfs.AssetFS) http.HandlerFunc {
 func main() {
 	var (
 		port = flag.String("port", "80", "Port for server")
+		contents = flag.String("contents", "./contents", "Folder for display")
 	)
 	flag.Parse()
 
 	api := API{
-		Path: "./contents",
+		Path: *contents,
 	}
 
 	assets := assetfs.AssetFS{
@@ -56,7 +57,7 @@ func main() {
 	http.HandleFunc("/api/store/", api.StoreHandler)
 
 	// local folder
-	http.Handle("/contents/", http.StripPrefix("/contents/", http.FileServer(http.Dir("./contents"))))
+	http.Handle("/contents/", http.StripPrefix("/contents/", http.FileServer(http.Dir(*contents))))
 
 	// served from bindata
 	http.HandleFunc("/", serveIndex(server, assets))
