@@ -133,6 +133,9 @@ go run *.go -port 8080
 - [ ] Add support for some of Hugo syntax (`<!--more-->`, metadata, ...),
 - [x] Actually save the contents that are being edited (client-side ajax),
 - [ ] Check if git has user.name && user.email set before commiting with git
+- [x] Add git support to Go API
+- [ ] Add option for HTTP auth
+- [ ] Deprecate/remove PHP API
 - [x] Support images with relative links in rendering
 - [x] Display images from preview markdown pane
 - [ ] More markdown styling (done: blockquote, code, image, needs: tables,...)

@@ -52,8 +52,8 @@ type ReadResponse struct {
 }
 
 type StoreResponse struct {
-	Status string   `json:"status"`
-	Log    []string `json:"log"`
+	Status string `json:"status"`
+	Log    string `json:"log"`
 }
 
 type API struct {
@@ -153,6 +153,13 @@ func (api *API) Store(filePath, contents string) (StoreResponse, error) {
 	}
 	fullPath := path.Join(api.Path, filePath)
 	err := ioutil.WriteFile(fullPath, []byte(contents), 0644)
+	if err != nil {
+		return response, err
+	}
+	git := Git{
+		Filename: fullPath,
+	}
+	response.Log, err = git.Commit()
 	return response, err
 }
 
