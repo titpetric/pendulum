@@ -2,23 +2,31 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
-	"os"
 	"path"
 
 	"net/http"
+
+	"github.com/elazarl/go-bindata-assetfs"
+
+	"app/assets"
 )
 
-var port = flag.String("port", "80", "Port for server")
+//go:generate go-bindata -prefix front/src -o assets/bindata.go -pkg assets -nomemcopy front/src/dist/...
 
 // Serves index.html in case the requested file isn't found (or some other os.Stat error)
-func serveIndex(serve http.Handler) http.HandlerFunc {
+func serveIndex(serve http.Handler, fs assetfs.AssetFS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		indexPage := "./public_html/index.html"
-		requestedPage := path.Join("./public_html", r.URL.Path)
-		_, err := os.Stat(requestedPage)
+		_, err := fs.AssetInfo(path.Join("dist", r.URL.Path))
 		if err != nil {
-			http.ServeFile(w, r, indexPage)
+			contents, err := fs.Asset("dist/index.html")
+			w.Header().Set("Content-Type", "text/html")
+			if err != nil {
+				w.Write([]byte(fmt.Sprintf("%s", err)))
+				return
+			}
+			w.Write(contents)
 			return
 		}
 		serve.ServeHTTP(w, r)
@@ -26,17 +34,33 @@ func serveIndex(serve http.Handler) http.HandlerFunc {
 }
 
 func main() {
+	var (
+		port = flag.String("port", "80", "Port for server")
+	)
 	flag.Parse()
 
 	api := API{
-		Path: "./public_html/contents",
+		Path: "./contents",
 	}
+
+	assets := assetfs.AssetFS{
+		Asset:     assets.Asset,
+		AssetDir:  assets.AssetDir,
+		AssetInfo: assets.AssetInfo,
+		Prefix:    "dist",
+	}
+	server := http.FileServer(&assets)
 
 	http.HandleFunc("/api/list/", api.ListHandler)
 	http.HandleFunc("/api/read/", api.ReadHandler)
 	http.HandleFunc("/api/store/", api.StoreHandler)
 
-	http.HandleFunc("/", serveIndex(http.FileServer(http.Dir("./public_html"))))
+	// local folder
+	http.Handle("/contents/", http.StripPrefix("/contents/", http.FileServer(http.Dir("./contents"))))
+
+	// served from bindata
+	http.HandleFunc("/", serveIndex(server, assets))
+
 	log.Println("Started listening on port", *port)
 	if err := http.ListenAndServe(":"+*port, nil); err != nil {
 		panic(err)
