@@ -12,9 +12,9 @@
 			<table class="table">
 				<thead>
 					<th>
-						<i class="mdi mdi-keyboard-return" v-if="path.length > 1" @click="back"></i>
-						<i class="mdi mdi-folder-open" v-else></i>
+						<i class="mdi mdi-folder-open"></i>
 						Name
+						<a class="back" v-if="path.length > 1" @click="back"><i class="mdi mdi-keyboard-return"></i></a>
 					</th>
 					<th class="tar">Last modified</th>
 				</thead>
@@ -97,6 +97,14 @@ export default {
 	}
 	.heading {
 		padding-bottom: 1em;
+	}
+	.back {
+		cursor: pointer;
+		margin-left: 1em;
+		background: #eee;
+		border: 1px solid #ddd;
+		border-radius: 3px;
+		padding: 1px 3px;
 	}
 }
 </style>
