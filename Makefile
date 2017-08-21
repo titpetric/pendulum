@@ -20,5 +20,6 @@ prepare:
 	@rm -rf build && mkdir build
 	@date +"%y%m%d-%H%M" > build/.date
 	@echo "Build folder prepared"
+	go generate
 
 .PHONY: all build-docker prepare
