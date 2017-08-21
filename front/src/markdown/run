@@ -1,0 +1,5 @@
+#!/bin/bash
+if [ ! -d "node_modules" ]; then
+	npm install mocha istanbul --save-dev
+fi
+./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -x index_test.js -- index_test.js
