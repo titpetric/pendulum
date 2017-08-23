@@ -6,7 +6,7 @@ ARG GITVERSION=development
 ARG GITTAG=development
 ENV GITVERSION=${GITVERSION} GITTAG=${GITTAG}
 
-ADD ./build/pendulum /app/pendulum
+ADD ./build/pendulum-linux-amd64 /app/pendulum
 
 WORKDIR /app
 
