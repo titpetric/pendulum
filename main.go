@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -22,11 +21,11 @@ func serveIndex(serve http.Handler, fs assetfs.AssetFS) http.HandlerFunc {
 		_, err := fs.AssetInfo(path.Join(fs.Prefix, r.URL.Path))
 		if err != nil {
 			contents, err := fs.Asset(path.Join(fs.Prefix, "index.html"))
-			w.Header().Set("Content-Type", "text/html")
 			if err != nil {
-				w.Write([]byte(fmt.Sprintf("%s", err)))
+				http.Error(w, err.Error(), http.StatusNotFound)
 				return
 			}
+			w.Header().Set("Content-Type", "text/html")
 			w.Write(contents)
 			return
 		}
@@ -47,11 +46,12 @@ func main() {
 		Path: path.Join(cwd, *contents),
 	}
 
+	assetPrefix := "dist"
 	assets := assetfs.AssetFS{
-		Asset:     assets.Asset,
-		AssetDir:  assets.AssetDir,
-		AssetInfo: assets.AssetInfo,
-		Prefix:    "dist",
+		assets.Asset,
+		assets.AssetDir,
+		assets.AssetInfo,
+		assetPrefix,
 	}
 	server := http.FileServer(&assets)
 
