@@ -8,7 +8,7 @@ build-go:
 	CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -o      build/pendulum-linux-386 *.go
 	CGO_ENABLED=0 GOOS=darwin GOARCH=386 go build -o     build/pendulum-darwin-386 *.go
 	CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -o    build/pendulum-windows-386.exe *.go
-	cd build && gzip pendulum* && cd ..
+	cd build && gzip -k pendulum* && cd ..
 	@echo "Build finished"
 
 build-docker:
