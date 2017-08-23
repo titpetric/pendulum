@@ -47,7 +47,7 @@ function github_upload {
 
 ## Release to GitHub
 github_release ${CI_TAG_AUTO} "$(date)"
-FILES=$(find build -type f | grep tgz$)
+FILES=$(find build -type f | grep gz$)
 for FILE in $FILES; do
 	github_upload ${CI_TAG_AUTO} "$FILE"
 done
