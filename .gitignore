@@ -2,7 +2,6 @@
 /assets
 /test
 /contents
-/nginx
 /pendulum
 /codeship.aes
 /.env
