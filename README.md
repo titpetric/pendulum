@@ -16,7 +16,7 @@ docker run -d --name pendulum \
 	--restart=always \
 	-p 8080:8080 \
 	-v $(pwd):/app/contents \
-	titpetric/pendulum -port 8080
+	titpetric/pendulum
 ~~~
 
 This will expose your current directory to Pendulum for editing. You can open the interface on
@@ -34,7 +34,7 @@ Usage of ./pendulum:
   -contents string
         Folder for display (default "./contents")
   -port string
-        Port for server (default "80")
+        Port for server (default "8080")
 ~~~
 
 If you want to serve contents of a `test` folder on port 8081 you would run it as:
@@ -42,6 +42,9 @@ If you want to serve contents of a `test` folder on port 8081 you would run it a
 ~~~
 ./pendulum -port 8081 -contents test
 ~~~
+
+It's also supported to pass the contents folder as a normal argument. This is the shortest way
+of starting pendulum serving a custom folder: `./pendulum folder`.
 
 ## Screenshot
 
@@ -87,11 +90,11 @@ ie, `.git`, `.gitignore`,...
 
 ## Go server + API
 
-A full HTTP server is implemented with Go. By default it listens on port 80, but it's trivial
+A full HTTP server is implemented with Go. By default it listens on port 8080, but it's trivial
 to change this, just by passing the `-port` option when you run it.
 
 ~~~
-go run *.go -port 8080
+go run *.go -port 80
 ~~~
 
 > **Note**: Pendulum supports git versioning. It does require you to set git config for `user.name`
