@@ -40,6 +40,10 @@ func main() {
 	)
 	flag.Parse()
 
+	if folder := flag.Arg(0); folder != "" {
+		*contents = folder
+	}
+
 	// Set absolute path to contents folder
 	cwd, _ := os.Getwd()
 	api := API{
