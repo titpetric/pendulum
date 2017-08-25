@@ -35,7 +35,7 @@ func serveIndex(serve http.Handler, fs assetfs.AssetFS) http.HandlerFunc {
 
 func main() {
 	var (
-		port     = flag.String("port", "80", "Port for server")
+		port     = flag.String("port", "8080", "Port for server")
 		contents = flag.String("contents", "contents", "Folder for display")
 	)
 	flag.Parse()
