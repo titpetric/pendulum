@@ -1,7 +1,7 @@
 # Pendulum
 
-A simple editor for markdown/txt files. Supports commiting changes into git repositories hosted
-anywhere (git add, git commit). Choice of back-ends: Go or PHP.
+A simple editor for markdown/txt files. Supports saving changes into git repositories hosted anywhere (git add, git commit).
+[Docker image](https://hub.docker.com/r/titpetric/pendulum) and [built binaries](https://github.com/titpetric/pendulum/releases) are provided.
 
 Written by [@TitPetric](https://twitter.com/TitPetric) and licensed under the permissive [WTFPL](http://www.wtfpl.net/txt/copying/).
 
@@ -85,31 +85,6 @@ It operates exclusively on the `contents` folder and the files you provide in th
 doesn't care what kind of files you put there, currently only files starting with a dot are excluded,
 ie, `.git`, `.gitignore`,...
 
-## PHP API
-
-You can use either the Go API or the PHP API. With the PHP API you'll need to provide a HTTP server
-in front of the app. The configuration for Nginx should look something like this:
-
-~~~
-location /api {
-	try_files $uri /api/index.php;
-}
-
-location / {
-	gzip on;
-	gzip_static on;
-	gzip_types *;
-	index index.html;
-	try_files $uri /index.html;
-}
-~~~
-
-> **Note**: the PHP API call honors git repositories. In case the file you are editing is located
-> in a git repository, Pendulum will add and commit this file when you save it. This way a full
-> roll-back history is provided, should you ever need it.
-
-The PHP API is implemented in PHP, using [Slim](https://www.slimframework.com/). Tested with PHP7.
-
 ## Go server + API
 
 A full HTTP server is implemented with Go. By default it listens on port 80, but it's trivial
@@ -119,8 +94,9 @@ to change this, just by passing the `-port` option when you run it.
 go run *.go -port 8080
 ~~~
 
-> **Note**: Unlike the PHP API, this doesn't implement git versioning, yet. But you also don't
-> need to setup and configure a nginx server, so there's that benefit.
+> **Note**: Pendulum supports git versioning. It does require you to set git config for `user.name`
+> and `user.email`. Without those, Pendulum will not add/commit files, regardless if a git repository
+> is present or not.
 
 
 ## Status
@@ -135,7 +111,7 @@ go run *.go -port 8080
 - [x] Check if git has user.name && user.email set before commiting with git
 - [x] Add git support to Go API
 - [ ] Add option for HTTP auth
-- [ ] Deprecate/remove PHP API
+- [x] Deprecate/remove PHP API
 - [x] Support images with relative links in rendering
 - [x] Display images from preview markdown pane
 - [ ] More markdown styling (done: blockquote, code, image, needs: tables,...)
