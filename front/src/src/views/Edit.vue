@@ -21,7 +21,7 @@
 				</div>
 				<div class="col-6">
 					<div class="preview" @scroll="updateScrollPreview">
-						<vue-markdown :source="preview"></vue-markdown>
+						<vue-markdown :source="preview" :breaks="false" :emoji="false"></vue-markdown>
 					</div>
 				</div>
 			</div>

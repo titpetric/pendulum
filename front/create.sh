@@ -9,7 +9,7 @@ fi
 node_modules/.bin/vue init webpack src
 rm -rf node_modules package.json yarn.lock
 cd src
-yarn install
+npm install
 npm i axios jsonp --save
 npm i sass-loader node-sass --dev
 npm i bootstrap@4.0.0-alpha.6 --dev
