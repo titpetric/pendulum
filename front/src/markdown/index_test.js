@@ -4,18 +4,20 @@ var assert = require("assert");
 //import markdown from 'index.js'
 var markdown = require("./index.js");
 
-describe('Markdown', function(){
-  describe('Replacements', function(){
+describe('Markdown', function () {
+  describe('Replacements', function () {
 
-    it('should replace metadata', function(){
-      var contents = `title: 'The thing about dates'
+    var folder = '/test'
+
+    it('should replace metadata', function () {
+      var content = `title: 'The thing about dates'
 date: 2017-08-16 18:00:00
 tags: [golang, tips, tricks]
 ---
 
 Adorable`;
 
-      var contentsExpected = `| Name | Value |
+      var contentExpected = `| Name | Value |
 |------|-------|
 | title |  'The thing about dates' |
 | date |  2017-08-16 18 |
@@ -24,27 +26,33 @@ Adorable`;
 
 Adorable`
 
-      contentsNew = markdown.Transform(contents)
+      contentNew = markdown.Transform(content, folder)
 
-      assert.equal(contentsNew, contentsExpected)
+      assert.equal(contentNew, contentExpected)
     })
 
-    it('should replace image', function(){
+    it('should keep http/s images', function () {
+        var content = '![](https://scene-si.org/post/2017-09-02-parsing-strings-with-go/heading.jpg)'
+        var expected = '![](https://scene-si.org/post/2017-09-02-parsing-strings-with-go/heading.jpg)'
+	assert.equal(markdown.Transform(content, folder), expected)
+    })
+
+    it('should replace image', function () {
 	var content = '{% asset_img heading.jpg %}'
-        var expected = '![](heading.jpg)'
-	assert.equal(markdown.Transform(content), expected)
+        var expected = '![](/contents/test/heading.jpg)'
+	assert.equal(markdown.Transform(content, folder), expected)
     }) 
 
-    it('should replace pagebreak from hugo', function(){
+    it('should replace pagebreak from hugo', function () {
 	var content = '<!--more--> <!--more-->'
         var expected = '<hr class="pagebreak"/> <hr class="pagebreak"/>'
-	assert.equal(markdown.Transform(content), expected)
+	assert.equal(markdown.Transform(content, folder), expected)
     }) 
 
-    it('should replace pagebreak from leanpub', function(){
+    it('should replace pagebreak from leanpub', function () {
 	var content = '{pagebreak} {pagebreak}'
         var expected = '<hr class="pagebreak"/> <hr class="pagebreak"/>'
-	assert.equal(markdown.Transform(content), expected)
+	assert.equal(markdown.Transform(content, folder), expected)
     }) 
 
   })

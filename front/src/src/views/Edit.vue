@@ -59,10 +59,7 @@ export default {
   computed: {
     preview: function () {
       var contents = this.file.contents
-      contents = contents.replace(/!\[([^\]]*)\]\(/g, '![$1](/contents' + this.file.dir + '/')
-      // Leanpub markdown
-      contents = contents.replace(/A>/g, '>')
-      return markdown.Transform(contents)
+      return markdown.Transform(contents, this.file.dir)
     }
   },
   beforeRouteLeave (to, from, next) {
