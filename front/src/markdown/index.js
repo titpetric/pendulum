@@ -15,6 +15,8 @@ var markdown = {
   },
   transformHugo: function(contents, folder) {
     contents = contents.replace(/{% asset_img ([^ ]+) %}/g, '![]($1)')
+    contents = contents.replace(/{% asset_img ([^ ]+) "(.+)" %}/g, '![$2]($1)')
+    contents = contents.replace(/{% asset_img ([^ ]+) '(.+)' %}/g, '![$2]($1)')
     return contents
   },
   transformImages: function (contents, folder) {

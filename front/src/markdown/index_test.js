@@ -41,7 +41,13 @@ Adorable`
 	var content = '{% asset_img heading.jpg %} {% asset_img heading.jpg %}'
         var expected = '![](/contents/test/heading.jpg) ![](/contents/test/heading.jpg)'
 	assert.equal(markdown.Transform(content, folder), expected)
-    }) 
+    })
+
+    it('should replace image with caption', function () {
+	var content = '{% asset_img heading.jpg "caption one" %} {% asset_img heading.jpg \'caption two\' %}'
+        var expected = '![caption one](/contents/test/heading.jpg) ![caption two](/contents/test/heading.jpg)'
+	assert.equal(markdown.Transform(content, folder), expected)
+    })
 
     it('should replace pagebreak from hugo', function () {
 	var content = '<!--more--> <!--more-->'
