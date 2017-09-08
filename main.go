@@ -33,10 +33,30 @@ func serveIndex(serve http.Handler, fs assetfs.AssetFS) http.HandlerFunc {
 	}
 }
 
+// Serve contents - if file isn't found, strip last directory before trying once more
+func serveContents(assetPath string, serve http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		requestedFile := path.Join(assetPath, r.URL.Path)
+		_, err := os.Stat(requestedFile)
+		if err != nil {
+			parentFolder := path.Dir(path.Dir(r.URL.Path))
+			requestedFile = path.Join(assetPath, parentFolder, path.Base(r.URL.Path))
+			_, err = os.Stat(requestedFile)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
+			http.ServeFile(w, r, requestedFile)
+			return
+		}
+		http.ServeFile(w, r, requestedFile)
+	}
+}
+
 func main() {
 	var (
 		port     = flag.String("port", "8080", "Port for server")
-		contents = flag.String("contents", "contents", "Folder for display")
+		contents = flag.String("contents", ".", "Folder for display")
 	)
 	flag.Parse()
 
@@ -64,7 +84,7 @@ func main() {
 	http.HandleFunc("/api/store/", api.StoreHandler)
 
 	// local folder
-	http.Handle("/contents/", http.StripPrefix("/contents/", http.FileServer(http.Dir(api.Path))))
+	http.Handle("/contents/", http.StripPrefix("/contents/", serveContents(api.Path, http.FileServer(http.Dir(api.Path)))))
 
 	// served from bindata
 	http.HandleFunc("/", serveIndex(server, assets))
