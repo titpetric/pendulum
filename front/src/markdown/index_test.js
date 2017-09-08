@@ -38,8 +38,8 @@ Adorable`
     })
 
     it('should replace image', function () {
-	var content = '{% asset_img heading.jpg %}'
-        var expected = '![](/contents/test/heading.jpg)'
+	var content = '{% asset_img heading.jpg %} {% asset_img heading.jpg %}'
+        var expected = '![](/contents/test/heading.jpg) ![](/contents/test/heading.jpg)'
 	assert.equal(markdown.Transform(content, folder), expected)
     }) 
 
