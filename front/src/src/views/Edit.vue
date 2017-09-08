@@ -59,7 +59,7 @@ export default {
   computed: {
     preview: function () {
       var contents = this.file.contents
-      return markdown.Transform(contents, this.file.dir)
+      return markdown.Transform(contents, this.$route.path.replace('edit/', '').replace('.txt', '').replace('.md', '') + '/')
     }
   },
   beforeRouteLeave (to, from, next) {
