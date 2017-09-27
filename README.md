@@ -1,8 +1,12 @@
 # Pendulum
 
 A simple editor for markdown/txt files. Supports saving changes into git repositories hosted anywhere (git add, git commit).
-[Docker image](https://hub.docker.com/r/titpetric/pendulum) and [built binaries](https://github.com/titpetric/pendulum/releases) are provided.
 
+<a target='_blank' rel='nofollow' href='https://app.codesponsor.io/link/Ud7o7ynwzNcFZb7zDdSAkbq2/titpetric/pendulum'>
+  <img alt='Sponsor' width='888' height='68' src='https://app.codesponsor.io/embed/Ud7o7ynwzNcFZb7zDdSAkbq2/titpetric/pendulum.svg' />
+</a>
+
+[Docker image](https://hub.docker.com/r/titpetric/pendulum) and [built binaries](https://github.com/titpetric/pendulum/releases) are provided.
 Written by [@TitPetric](https://twitter.com/TitPetric) and licensed under the permissive [WTFPL](http://www.wtfpl.net/txt/copying/).
 
 [![Codeship Status for titpetric/pendulum](https://app.codeship.com/projects/88ecf220-6806-0135-7d43-4a6204a3e72a/status?branch=master)](https://app.codeship.com/projects/241162)
