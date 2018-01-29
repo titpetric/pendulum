@@ -2,10 +2,6 @@
 
 A simple editor for markdown/txt files. Supports saving changes into git repositories hosted anywhere (git add, git commit).
 
-<a target='_blank' rel='nofollow' href='https://app.codesponsor.io/link/Ud7o7ynwzNcFZb7zDdSAkbq2/titpetric/pendulum'>
-  <img alt='Sponsor' width='888' height='68' src='https://app.codesponsor.io/embed/Ud7o7ynwzNcFZb7zDdSAkbq2/titpetric/pendulum.svg' />
-</a>
-
 [Docker image](https://hub.docker.com/r/titpetric/pendulum) and [built binaries](https://github.com/titpetric/pendulum/releases) are provided.
 Written by [@TitPetric](https://twitter.com/TitPetric) and licensed under the permissive [WTFPL](http://www.wtfpl.net/txt/copying/).
 
