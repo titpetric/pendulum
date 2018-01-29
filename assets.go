@@ -1,0 +1,3 @@
+package pendulum
+
+//go:generate go-bindata -prefix front/src -o assets_bindata.go -pkg pendulum -nomemcopy front/src/dist/...

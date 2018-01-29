@@ -10,10 +10,8 @@ import (
 
 	"github.com/elazarl/go-bindata-assetfs"
 
-	"app/assets"
+	"github.com/titpetric/pendulum"
 )
-
-//go:generate go-bindata -prefix front/src -o assets/bindata.go -pkg assets -nomemcopy front/src/dist/...
 
 // Serves index.html in case the requested file isn't found (or some other os.Stat error)
 func serveIndex(serve http.Handler, fs assetfs.AssetFS) http.HandlerFunc {
@@ -72,9 +70,9 @@ func main() {
 
 	assetPrefix := "dist"
 	assets := assetfs.AssetFS{
-		assets.Asset,
-		assets.AssetDir,
-		assets.AssetInfo,
+		pendulum.Asset,
+		pendulum.AssetDir,
+		pendulum.AssetInfo,
 		assetPrefix,
 	}
 	server := http.FileServer(&assets)
