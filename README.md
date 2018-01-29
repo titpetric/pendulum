@@ -20,7 +20,7 @@ docker run -d --name pendulum \
 ~~~
 
 This will expose your current directory to Pendulum for editing. You can open the interface on
-[http://localhost/](http://localhost/) and start editing those files right away.
+[http://localhost:8080/](http://localhost:8080/) and start editing those files right away.
 
 ## Download executable
 
