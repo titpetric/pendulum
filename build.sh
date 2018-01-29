@@ -1,6 +1,23 @@
 #!/bin/bash
-if [ ! -d "vendor/github.com/elazarl/go-bindata-assetfs" ]; then
-	gvt fetch github.com/elazarl/go-bindata-assetfs
-fi
-go generate
-docker run --rm -it -e CGO_ENABLED=0 -v `pwd`:/go/src/app -w /go/src/app golang:1.9-alpine go build -o pendulum *.go
+set -e
+PROJECT=$(basename $(dirname $(readlink -f $0)))
+
+docker run --rm -v $(pwd):/go/src/github.com/titpetric/$PROJECT -w /go/src/github.com/titpetric/$PROJECT -e GOOS=linux -e GOARCH=${ARCH} -e CGO_ENABLED=0 -e GOARM=7 titpetric/golang go generate
+
+NAMES=$(ls cmd/* -d | xargs -n1 basename)
+for NAME in $NAMES; do
+	OSES=${OSS:-"linux darwin windows"}
+	ARCHS=${ARCHS:-"amd64 386"}
+	for ARCH in $ARCHS; do
+		for OS in $OSES; do
+			echo $OS $ARCH $NAME
+			docker run --rm -v $(pwd):/go/src/github.com/titpetric/$PROJECT -w /go/src/github.com/titpetric/$PROJECT -e GOOS=${OS} -e GOARCH=${ARCH} -e CGO_ENABLED=0 -e GOARM=7 titpetric/golang go build -o build/${NAME}-${OS}-${ARCH} cmd/${NAME}/*.go
+			if [ $? -eq 0 ]; then
+				echo OK
+			fi
+			if [ "$OS" == "windows" ]; then
+				mv build/${NAME}-${OS}-${ARCH} build/${NAME}-${OS}-${ARCH}.exe
+			fi
+		done
+	done
+done

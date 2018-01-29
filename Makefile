@@ -2,12 +2,7 @@ all:
 	@echo 'Usage: make <prepare|build-go|build-docker>'
 
 build-go:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o    build/pendulum-linux-amd64 *.go
-	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o   build/pendulum-darwin-amd64 *.go
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o  build/pendulum-windows-amd64.exe *.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -o      build/pendulum-linux-386 *.go
-	CGO_ENABLED=0 GOOS=darwin GOARCH=386 go build -o     build/pendulum-darwin-386 *.go
-	CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -o    build/pendulum-windows-386.exe *.go
+	./build.sh
 	cd build && gzip -k pendulum* && cd ..
 	@echo "Build finished"
 
