@@ -4,8 +4,6 @@
   steps:
     - name: 'prepare'
       command: ./codeship-build.sh prepare
-    - name: 'test'
-      command: ./codeship-build.sh test
     - name: 'build go'
       command: ./codeship-build.sh build-go
     - name: 'build docker'

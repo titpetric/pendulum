@@ -16,7 +16,4 @@ prepare:
 	cd front && ./build.sh && cd ..
 	go generate
 
-test:
-	go test
-
 .PHONY: all test build-docker prepare
