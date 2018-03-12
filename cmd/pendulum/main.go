@@ -2,13 +2,17 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"net"
 	"os"
 	"path"
+	"strings"
 
 	"net/http"
 
 	"github.com/elazarl/go-bindata-assetfs"
+	"github.com/go-chi/chi"
 
 	"github.com/titpetric/pendulum"
 )
@@ -32,40 +36,52 @@ func serveIndex(serve http.Handler, fs assetfs.AssetFS) http.HandlerFunc {
 }
 
 // Serve contents - if file isn't found, strip last directory before trying once more
-func serveContents(assetPath string, serve http.Handler) http.HandlerFunc {
+func serveContents(assetPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		requestedFile := path.Join(assetPath, r.URL.Path)
-		_, err := os.Stat(requestedFile)
-		if err != nil {
-			parentFolder := path.Dir(path.Dir(r.URL.Path))
-			requestedFile = path.Join(assetPath, parentFolder, path.Base(r.URL.Path))
-			_, err = os.Stat(requestedFile)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusNotFound)
-				return
+		var err error
+
+		tryFiles := []string{
+			// layout: content/post/stub.md + content/post/stub/image.jpg
+			path.Join(assetPath, r.URL.Path),
+			path.Join(assetPath, path.Dir(path.Dir(r.URL.Path)), path.Base(r.URL.Path)),
+		}
+		// layout: content/post/stub.md + content/images/stub/image.jpg
+		tryFiles = append(tryFiles, strings.Replace(tryFiles[0], "/post", "/images", 1))
+		tryFiles = append(tryFiles, strings.Replace(tryFiles[1], "/post", "/images", 1))
+
+		for _, requestedFile := range tryFiles {
+			os.IsNotExist(err)
+			if _, err = os.Stat(requestedFile); os.IsNotExist(err) {
+				continue
 			}
 			http.ServeFile(w, r, requestedFile)
 			return
 		}
-		http.ServeFile(w, r, requestedFile)
+		http.Error(w, "File not found", http.StatusNotFound)
+	}
+}
+
+func handleError(err error, message string) {
+	if message == "" {
+		message = "Error making API call"
+	}
+	if err != nil {
+		log.Fatalf(message+": %v", err.Error())
 	}
 }
 
 func main() {
 	var (
-		port     = flag.String("port", "8080", "Port for server")
+		addr     = flag.String("addr", ":8080", "Address for server")
 		contents = flag.String("contents", ".", "Folder for display")
 	)
 	flag.Parse()
 
+	// log to stdout not stderr
+	log.SetOutput(os.Stdout)
+
 	if folder := flag.Arg(0); folder != "" {
 		*contents = folder
-	}
-
-	// Set absolute path to contents folder
-	cwd, _ := os.Getwd()
-	api := API{
-		Path: path.Join(cwd, *contents),
 	}
 
 	assetPrefix := "dist"
@@ -75,20 +91,24 @@ func main() {
 		pendulum.AssetInfo,
 		assetPrefix,
 	}
-	server := http.FileServer(&assets)
 
-	http.HandleFunc("/api/list/", api.ListHandler)
-	http.HandleFunc("/api/read/", api.ReadHandler)
-	http.HandleFunc("/api/store/", api.StoreHandler)
-
-	// local folder
-	http.Handle("/contents/", http.StripPrefix("/contents/", serveContents(api.Path, http.FileServer(http.Dir(api.Path)))))
-
-	// served from bindata
-	http.HandleFunc("/", serveIndex(server, assets))
-
-	log.Println("Started listening on port", *port)
-	if err := http.ListenAndServe(":"+*port, nil); err != nil {
-		panic(err)
+	// Set absolute path to contents folder
+	cwd, _ := os.Getwd()
+	api := &API{
+		Path: path.Join(cwd, *contents),
 	}
+	api.Contents = func (w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/contents/", serveContents(api.Path)).ServeHTTP(w, r)
+	}
+	api.Assets = serveIndex(http.FileServer(&assets), assets)
+
+	// listen socket for http server
+	log.Println("Starting http server on address " + *addr)
+	listener, err := net.Listen("tcp", *addr)
+	handleError(err, "Can't listen on addr "+*addr)
+
+	// mount routes
+	r := chi.NewRouter()
+	MountRoutes(r, api)
+	http.Serve(listener, r)
 }

@@ -57,7 +57,9 @@ type StoreResponse struct {
 }
 
 type API struct {
-	Path string
+	Path     string
+	Assets   http.HandlerFunc
+	Contents http.HandlerFunc
 }
 
 func (api *API) List(locationPath string) ([]Location, error) {
