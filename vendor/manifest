@@ -8,6 +8,22 @@
 			"revision": "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43",
 			"branch": "master",
 			"notests": true
+		},
+		{
+			"importpath": "github.com/go-chi/chi",
+			"repository": "https://github.com/go-chi/chi",
+			"vcs": "git",
+			"revision": "e223a795a06a5598451cf022558c17c779f5a7ab",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/go-chi/cors",
+			"repository": "https://github.com/go-chi/cors",
+			"vcs": "git",
+			"revision": "dba6525398619dead495962a916728e7ee2ca322",
+			"branch": "master",
+			"notests": true
 		}
 	]
 }
