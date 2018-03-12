@@ -39,10 +39,13 @@ func serveContents(assetPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
 
+		skipBaseFolder := strings.Join(strings.Split(strings.Trim(r.URL.Path, "/"), "/")[1:], "/")
+
 		tryFiles := []string{
 			// layout: content/post/stub.md + content/post/stub/image.jpg
 			path.Join(assetPath, r.URL.Path),
 			path.Join(assetPath, path.Dir(path.Dir(r.URL.Path)), path.Base(r.URL.Path)),
+			path.Join(assetPath, skipBaseFolder),
 		}
 		// layout: content/post/stub.md + content/images/stub/image.jpg
 		tryFiles = append(tryFiles, strings.Replace(tryFiles[0], "/post", "/images", 1))
