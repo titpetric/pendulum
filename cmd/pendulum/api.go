@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"sort"
-	"strings"
 	"time"
 
 	"encoding/json"
@@ -95,22 +94,6 @@ func (api *API) List(locationPath string) ([]Location, error) {
 	return response, nil
 }
 
-func (api *API) ListHandler(w http.ResponseWriter, r *http.Request) {
-	var err error
-
-	response := struct {
-		Response ListResponse `json:"response"`
-	}{}
-
-	response.Response.Folder = r.URL.Path
-	response.Response.Files, err = api.List(strings.Replace(r.URL.Path, "/api/list", "", 1))
-	if err != nil {
-		api.ServeJSON(w, r, api.Error(err))
-		return
-	}
-	api.ServeJSON(w, r, response)
-}
-
 func (api *API) Read(filePath string) (ReadResponse, error) {
 	response := ReadResponse{
 		Location: Location{
@@ -141,21 +124,6 @@ func (api *API) Read(filePath string) (ReadResponse, error) {
 	return response, nil
 }
 
-func (api *API) ReadHandler(w http.ResponseWriter, r *http.Request) {
-	var err error
-
-	response := struct {
-		Response ReadResponse `json:"response"`
-	}{}
-	response.Response, err = api.Read(strings.Replace(r.URL.Path, "/api/read", "", 1))
-
-	if err != nil {
-		api.ServeJSON(w, r, api.Error(err))
-		return
-	}
-	api.ServeJSON(w, r, response)
-}
-
 func (api *API) Store(filePath, contents string) (StoreResponse, error) {
 	response := StoreResponse{
 		Status: "OK",
@@ -170,21 +138,6 @@ func (api *API) Store(filePath, contents string) (StoreResponse, error) {
 	}
 	response.Log, err = git.Commit()
 	return response, err
-}
-
-func (api *API) StoreHandler(w http.ResponseWriter, r *http.Request) {
-	var err error
-
-	response := struct {
-		Response StoreResponse `json:"response"`
-	}{}
-	response.Response, err = api.Store(strings.Replace(r.URL.Path, "/api/store", "", 1), r.PostFormValue("contents"))
-
-	if err != nil {
-		api.ServeJSON(w, r, api.Error(err))
-		return
-	}
-	api.ServeJSON(w, r, response)
 }
 
 func (api *API) Error(err error) interface{} {
