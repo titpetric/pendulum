@@ -57,7 +57,7 @@ var markdown = {
         return
       }
       if (columns[0].trim() === 'image') {
-        columns[1] = '![](' + columns[1].trim() + ')'
+        columns[1] = '![](' + columns[1].trim().replace(/^"(.+)"$/,'$1').replace(/^'(.+)'$/,'$1') + ')'
       }
       headingTable.push('| ' + columns.join(' | ') + ' |')
     })

@@ -33,9 +33,7 @@ Adorable`
 
     it('should replace metadata image', function () {
       var content = `title: 'The thing about dates'
-date: 2017-08-16 18:00:00
 image: ../post/the-thing-about-dates/heading.jpg
-tags: [golang, tips, tricks]
 ---
 
 Adorable`;
@@ -43,9 +41,47 @@ Adorable`;
       var contentExpected = `| Name | Value |
 |------|-------|
 | title |  'The thing about dates' |
-| date |  2017-08-16 18 |
 | image | ![](/contents/test/../post/the-thing-about-dates/heading.jpg) |
-| tags |  [golang, tips, tricks] |
+---
+
+Adorable`
+
+      contentNew = markdown.Transform(content, folder)
+
+      assert.equal(contentNew, contentExpected)
+    })
+
+    it('should replace single quoted metadata image', function () {
+      var content = `title: 'The thing about dates'
+image: '../post/the-thing-about-dates/heading.jpg'
+---
+
+Adorable`;
+
+      var contentExpected = `| Name | Value |
+|------|-------|
+| title |  'The thing about dates' |
+| image | ![](/contents/test/../post/the-thing-about-dates/heading.jpg) |
+---
+
+Adorable`
+
+      contentNew = markdown.Transform(content, folder)
+
+      assert.equal(contentNew, contentExpected)
+    })
+
+    it('should replace double quoted metadata image', function () {
+      var content = `title: 'The thing about dates'
+image: "../post/the-thing-about-dates/heading.jpg"
+---
+
+Adorable`;
+
+      var contentExpected = `| Name | Value |
+|------|-------|
+| title |  'The thing about dates' |
+| image | ![](/contents/test/../post/the-thing-about-dates/heading.jpg) |
 ---
 
 Adorable`
