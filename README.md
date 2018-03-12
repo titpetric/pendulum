@@ -102,13 +102,14 @@ go run *.go -addr :80
 > is present or not.
 
 
-## Supported syntax
+## Special syntax
 
 | Software | Type | Syntax | Support |
 | -------- | ---- | ------ | ------- |
 | Leanpub | Citation | `A> Note` | Yes |
 | Leanpub | Pagebreak | `{pagebreak}` | Yes |
 | Hugo | Pagebreak | `<!--more-->` | Yes |
+| Hexo | Image | [asset_img](https://hexo.io/docs/asset-folders.html) | Yes |
 
 I'm trying to add new features here. Feel free to submit a PR if there's a syntax you'd like to support, with the appropriate tests under `front/src/markdown/*`.
 
