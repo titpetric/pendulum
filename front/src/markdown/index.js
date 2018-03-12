@@ -29,7 +29,7 @@ var markdown = {
     return contents
   },
   transformLeanpub: function (contents) {
-    contents = contents.replace(/A>/g, '>')
+    contents = contents.replace(/^A>/g, '>')
     return contents
   },
   transformMeta: function (contents) {

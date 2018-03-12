@@ -113,14 +113,19 @@ Adorable`
 	var content = '<!--more--> <!--more-->'
         var expected = '<hr class="pagebreak"/> <hr class="pagebreak"/>'
 	assert.equal(markdown.Transform(content, folder), expected)
-    }) 
+    })
 
     it('should replace pagebreak from leanpub', function () {
 	var content = '{pagebreak} {pagebreak}'
         var expected = '<hr class="pagebreak"/> <hr class="pagebreak"/>'
 	assert.equal(markdown.Transform(content, folder), expected)
-    }) 
+    })
 
+    it('should replace cite from leanpub', function () {
+	var content = 'A> this is a bordered citation using `A>` syntax'
+	var expected = '> this is a bordered citation using `A>` syntax'
+	assert.equal(markdown.Transform(content, folder), expected)
+    })
   })
 });
 
