@@ -24,7 +24,7 @@ var markdown = {
       if (m.match(/\]\(http/)) {
         return m
       }
-      return m.replace('](', '](/contents' + folder + '/');
+      return m.replace('](', '](/contents' + folder + '/')
     })
     return contents
   },
@@ -41,7 +41,7 @@ var markdown = {
     if (contents.indexOf('---') === -1) {
       return contents
     }
-    var parts = contents.split("---", 2)
+    var parts = contents.split('---', 2)
     var heading = parts[0].trim().split("\n")
     var isMeta = true
     var headingTable = []
@@ -56,10 +56,13 @@ var markdown = {
         isMeta = false
         return
       }
+      if (columns[0].trim() === 'image') {
+        columns[1] = '![](' + columns[1].trim() + ')'
+      }
       headingTable.push('| ' + columns.join(' | ') + ' |')
     })
     if (!isMeta) {
-      return contents;
+      return contents
     }
     parts[0] = headingTable.join("\n")
     return parts.join("\n---")
@@ -67,5 +70,5 @@ var markdown = {
 }
 
 if (typeof module === "object") {
-	module.exports = Object.create(markdown);
+	module.exports = Object.create(markdown)
 }

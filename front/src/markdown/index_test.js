@@ -31,6 +31,30 @@ Adorable`
       assert.equal(contentNew, contentExpected)
     })
 
+    it('should replace metadata image', function () {
+      var content = `title: 'The thing about dates'
+date: 2017-08-16 18:00:00
+image: ../post/the-thing-about-dates/heading.jpg
+tags: [golang, tips, tricks]
+---
+
+Adorable`;
+
+      var contentExpected = `| Name | Value |
+|------|-------|
+| title |  'The thing about dates' |
+| date |  2017-08-16 18 |
+| image | ![](/contents/test/../post/the-thing-about-dates/heading.jpg) |
+| tags |  [golang, tips, tricks] |
+---
+
+Adorable`
+
+      contentNew = markdown.Transform(content, folder)
+
+      assert.equal(contentNew, contentExpected)
+    })
+
     it('should keep http/s images', function () {
         var content = '![](https://scene-si.org/post/2017-09-02-parsing-strings-with-go/heading.jpg)'
         var expected = '![](https://scene-si.org/post/2017-09-02-parsing-strings-with-go/heading.jpg)'
