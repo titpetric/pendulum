@@ -111,13 +111,13 @@ Adorable`
 
     it('should replace pagebreak from hugo', function () {
 	var content = '<!--more--> <!--more-->'
-        var expected = '<hr class="pagebreak"/> <hr class="pagebreak"/>'
+        var expected = '<hr class="pagebreak"/> <!--more-->'
 	assert.equal(markdown.Transform(content, folder), expected)
     })
 
     it('should replace pagebreak from leanpub', function () {
 	var content = '{pagebreak} {pagebreak}'
-        var expected = '<hr class="pagebreak"/> <hr class="pagebreak"/>'
+        var expected = '<hr class="pagebreak"/> {pagebreak}'
 	assert.equal(markdown.Transform(content, folder), expected)
     })
 

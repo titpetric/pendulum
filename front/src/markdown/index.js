@@ -9,8 +9,8 @@ var markdown = {
   },
   transformPageBreaks: function (contents) {
     var replacement = '<hr class="pagebreak"/>'
-    contents = contents.replace(/<!--more-->/gi, replacement)
-    contents = contents.replace(/{pagebreak}/gi, replacement)
+    contents = contents.replace(/^<!--more-->/gi, replacement)
+    contents = contents.replace(/^{pagebreak}/gi, replacement)
     return contents
   },
   transformHugo: function(contents, folder) {
