@@ -30,17 +30,17 @@ Usage is simple. Download the .tgz file, unpack the binary and run it with any o
 ~~~
 # ./pendulum -?
 flag provided but not defined: -?
-Usage of ./pendulum:
+Usage of pendulum:
+  -addr string
+        Address for server (default ":8080")
   -contents string
-        Folder for display (default "./contents")
-  -port string
-        Port for server (default "8080")
+        Folder for display (default ".")
 ~~~
 
 If you want to serve contents of a `test` folder on port 8081 you would run it as:
 
 ~~~
-./pendulum -port 8081 -contents test
+./pendulum -addr :8081 -contents test
 ~~~
 
 It's also supported to pass the contents folder as a normal argument. This is the shortest way
@@ -91,16 +91,26 @@ ie, `.git`, `.gitignore`,...
 ## Go server + API
 
 A full HTTP server is implemented with Go. By default it listens on port 8080, but it's trivial
-to change this, just by passing the `-port` option when you run it.
+to change this, just by passing the `-addr` option when you run it.
 
 ~~~
-go run *.go -port 80
+go run *.go -addr :80
 ~~~
 
 > **Note**: Pendulum supports git versioning. It does require you to set git config for `user.name`
 > and `user.email`. Without those, Pendulum will not add/commit files, regardless if a git repository
 > is present or not.
 
+
+## Supported syntax
+
+| Software | Type | Syntax | Support |
+| -------- | ---- | ------ | ------- |
+| Leanpub | Citation | `A> Note` | Yes |
+| Leanpub | Pagebreak | `{pagebreak}` | Yes |
+| Hugo | Pagebreak | `<!--more-->` | Yes |
+
+I'm trying to add new features here. Feel free to submit a PR if there's a syntax you'd like to support, with the appropriate tests under `front/src/markdown/*`.
 
 ## Status
 
