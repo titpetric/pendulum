@@ -5,6 +5,7 @@ if [ ! -d "node_modules" ]; then
 fi
 set -e
 npm run lint
+npm rebuild node-sass
 npm run build
 rsync -a --del src/api/ dist/api/
 set +e
