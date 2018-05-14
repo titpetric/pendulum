@@ -21,3 +21,6 @@ for NAME in $NAMES; do
 		done
 	done
 done
+
+echo "Resulting files:"
+find build -type f
