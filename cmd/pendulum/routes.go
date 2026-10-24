@@ -1,34 +1,21 @@
 package main
 
-import (
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/cors"
-)
+import "net/http"
 
-// MountRoutes will register API routes
-func MountRoutes(r chi.Router, api *API) {
-	// CORS for local development...
-	cors := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	})
-	r.Use(cors.Handler)
-	r.Use(middleware.Logger)
+// Routes answers the whole of the server: five API calls, the folder being
+// edited, and the frontend. net/http's own patterns carry the method and
+// the wildcard, so there is no router to depend on.
+func Routes(api *API) *http.ServeMux {
+	mux := http.NewServeMux()
 
-	r.Route("/api", func(r chi.Router) {
-		// List all jobs
-		r.Get("/list/*", api.ListHandler)
-		r.Get("/read/*", api.ReadHandler)
-		r.Post("/store/*", api.StoreHandler)
-	})
+	mux.HandleFunc("GET /api/list/{path...}", api.ListHandler)
+	mux.HandleFunc("GET /api/read/{path...}", api.ReadHandler)
+	mux.HandleFunc("POST /api/store/{path...}", api.StoreHandler)
+	mux.HandleFunc("POST /api/preview", api.PreviewHandler)
+	mux.HandleFunc("POST /api/upload", api.UploadHandler)
 
-	// read from local storage
-	r.Get("/contents/*", api.Contents)
+	mux.HandleFunc("GET /contents/{path...}", api.ContentsHandler)
+	mux.HandleFunc("GET /", api.FrontendHandler)
 
-	// served from bindata assets
-	r.Get("/*", api.Assets)
+	return mux
 }

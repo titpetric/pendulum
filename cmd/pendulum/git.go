@@ -3,31 +3,31 @@ package main
 import (
 	"fmt"
 	"os"
-	"path"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
-
-	"os/exec"
 )
 
+// Git commits a saved file where the folder is a git repository. A folder
+// that is not one, or a git without a configured identity, saves the file
+// and says nothing.
 type Git struct {
 	Filename string
 }
 
 func (r *Git) Commit() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	err = os.Chdir(path.Dir(r.Filename))
-	if err != nil {
-		return "", err
-	}
-	defer os.Chdir(cwd)
+	// Every command runs with cmd.Dir set rather than by changing the
+	// process directory: the server answers requests in parallel, and a
+	// chdir would move the ground under all of them.
+	folder := filepath.Dir(r.Filename)
 
-	// Don't error out if git isn't configured
-	name := r.UserName()
-	email := r.UserEmail()
+	if r.exec(folder, "git", "rev-parse", "--is-inside-work-tree") != "true" {
+		return "", nil
+	}
+
+	name := r.exec(folder, "git", "config", "user.name")
+	email := r.exec(folder, "git", "config", "user.email")
 	if name == "" || email == "" {
 		return "", nil
 	}
@@ -35,22 +35,20 @@ func (r *Git) Commit() (string, error) {
 	hostname, _ := os.Hostname()
 	message := fmt.Sprintf("Edited with Pendulum@%s on %s", hostname, time.Now().Format(time.UnixDate))
 
-	output := r.exec([]string{"git", "add", path.Base(r.Filename)})
-	return output + "\n" + r.exec([]string{"git", "commit", "-m", message}), nil
+	added := r.exec(folder, "git", "add", filepath.Base(r.Filename))
+	committed := r.exec(folder, "git", "commit", "-m", message)
+
+	return strings.TrimSpace(added + "\n" + committed), nil
 }
 
-func (r *Git) UserName() string {
-	return r.exec(strings.Split("git config user.name", " "))
-}
+func (r *Git) exec(dir, name string, args ...string) string {
+	command := exec.Command(name, args...)
+	command.Dir = dir
 
-func (r *Git) UserEmail() string {
-	return r.exec(strings.Split("git config user.email", " "))
-}
-
-func (r *Git) exec(cmdArgs []string) string {
-	cmdName := cmdArgs[0]
-	if cmdOut, err := exec.Command(cmdName, cmdArgs[1:]...).Output(); err == nil {
-		return strings.TrimSpace(string(cmdOut))
+	output, err := command.Output()
+	if err != nil {
+		return ""
 	}
-	return ""
+
+	return strings.TrimSpace(string(output))
 }

@@ -2,59 +2,70 @@ package main
 
 import (
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
-
-	"io/ioutil"
 )
 
-func TestGit(t *testing.T) {
-	// Set up clean git repo in test/ folder
-	git := Git{}
-	git.exec(strings.Split("rm -rf test", " "))
-	os.Mkdir("test", 0777)
-	os.Chdir("test")
-	git.exec([]string{"git", "init"})
+func TestGitCommit(t *testing.T) {
+	folder := t.TempDir()
+	file := filepath.Join(folder, "test.txt")
 
-	// Verify empty user settings
-	if val := git.UserName(); val != "" {
-		t.Error("Expected name=empty, got " + val)
-	}
-	if val := git.UserEmail(); val != "" {
-		t.Error("Expected email=empty, got " + val)
+	if err := os.WriteFile(file, []byte("hello world, I am from the future"), 0o644); err != nil {
+		t.Fatal(err)
 	}
 
-	// Set local repo settings for test
-	git.exec([]string{"git", "config", "user.name", "Tit Petric"})
-	git.exec([]string{"git", "config", "user.email", "black@scene-si.org"})
+	git := Git{Filename: file}
 
-	// Verify new user settings
-	if val := git.UserName(); val != "Tit Petric" {
-		t.Error("Expected name=Tit Petric, got " + val)
+	// A folder that is not a repository saves and says nothing.
+	if log, err := git.Commit(); err != nil || log != "" {
+		t.Errorf("outside a repository: log=%q err=%v", log, err)
 	}
-	if val := git.UserEmail(); val != "black@scene-si.org" {
-		t.Error("Expected email=black@scene-si.org, got " + val)
-	}
-	os.Chdir("..")
 
-	// Write a file and commit it, check that path is restored to previous cwd.
-	ioutil.WriteFile("test/test.txt", []byte("hello world, I am from the future"), 0644)
-	git.Filename = "test/test.txt"
-	cwd1, _ := os.Getwd()
-	_, err := git.Commit()
-	cwd2, _ := os.Getwd()
+	gitRun(t, folder, "git", "init")
+
+	// A repository with no identity configured is left alone: a commit
+	// would be attributed to whoever the machine guesses.
+	if log, err := git.Commit(); err != nil || log != "" {
+		t.Errorf("without an identity: log=%q err=%v", log, err)
+	}
+
+	gitRun(t, folder, "git", "config", "user.name", "Tit Petric")
+	gitRun(t, folder, "git", "config", "user.email", "black@scene-si.org")
+
+	if _, err := git.Commit(); err != nil {
+		t.Fatal(err)
+	}
+
+	log := gitOutput(t, folder, "git", "log", "--format=oneline")
+	if strings.Count(log, "\n") != 0 || log == "" {
+		t.Errorf("expected one commit, got %q", log)
+	}
+	if !strings.Contains(log, "Edited with Pendulum@") {
+		t.Errorf("expected the pendulum message, got %q", log)
+	}
+}
+
+func gitRun(t *testing.T, dir, name string, args ...string) {
+	t.Helper()
+
+	command := exec.Command(name, args...)
+	command.Dir = dir
+	if out, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("%s %s: %v: %s", name, strings.Join(args, " "), err, out)
+	}
+}
+
+func gitOutput(t *testing.T, dir, name string, args ...string) string {
+	t.Helper()
+
+	command := exec.Command(name, args...)
+	command.Dir = dir
+	out, err := command.Output()
 	if err != nil {
-		t.Error(err)
-	}
-	if cwd1 != cwd2 {
-		t.Error("Should reset working directory back to root")
+		t.Fatalf("%s %s: %v", name, strings.Join(args, " "), err)
 	}
 
-	// Check we made one commit
-	os.Chdir("test")
-	output := git.exec(strings.Split("git log --format=oneline", " "))
-	if strings.Contains(output, "\n") {
-		t.Errorf("Expected one commit in the git log, got: '%s'", output)
-	}
-	os.Chdir("..")
+	return strings.TrimSpace(string(out))
 }

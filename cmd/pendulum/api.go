@@ -1,162 +1,199 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"errors"
+	"io/fs"
+	"log"
+	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
+	"strings"
 	"time"
-
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
 )
 
-type Location struct {
-	Type         string `json:"type"`
-	Path         string `json:"path"`
-	Name         string `json:"name"`
-	Dir          string `json:"dir"`
-	LastModified string `json:"last_modified"`
+// API serves one folder: everything it reads, writes and stores stays under
+// Root, and Resolve is what holds that line.
+type API struct {
+	Root     string
+	Uploads  *Uploads
+	Frontend fs.FS
 }
 
+// Location is one entry in a folder listing.
+type Location struct {
+	Type         string    `json:"type"`
+	Path         string    `json:"path"`
+	Name         string    `json:"name"`
+	Dir          string    `json:"dir"`
+	LastModified time.Time `json:"last_modified"`
+}
+
+// ListResponse is a folder and what is in it, directories first.
 type ListResponse struct {
 	Folder string     `json:"folder"`
 	Files  []Location `json:"files"`
 }
 
-type ByFolderAndName []Location
-
-func (a ByFolderAndName) Len() int {
-	return len(a)
-}
-
-func (a ByFolderAndName) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-
-func (a ByFolderAndName) Less(i, j int) bool {
-	if a[i].Type != a[j].Type {
-		if a[i].Type == "dir" {
-			return true
-		}
-		return false
-	}
-	return a[i].Name < a[j].Name
-}
-
+// ReadResponse is one file and its contents. A file that does not exist
+// answers empty contents: the editor opens a new file that way.
 type ReadResponse struct {
 	Location
 	Contents string `json:"contents"`
 }
 
+// StoreResponse carries whatever git had to say about the commit.
 type StoreResponse struct {
 	Status string `json:"status"`
 	Log    string `json:"log"`
 }
 
-type API struct {
-	Path     string
-	Assets   http.HandlerFunc
-	Contents http.HandlerFunc
+var errOutsideRoot = errors.New("path is outside the folder being edited")
+
+// Resolve answers the absolute path for a request path, refusing anything
+// that climbs out of Root. A browser can ask for ../../etc/passwd, and the
+// editor serves whatever folder it was started in.
+func (api *API) Resolve(requested string) (string, error) {
+	clean := path.Clean("/" + strings.TrimPrefix(requested, "/"))
+	full := filepath.Join(api.Root, filepath.FromSlash(clean))
+
+	if full != api.Root && !strings.HasPrefix(full, api.Root+string(os.PathSeparator)) {
+		return "", errOutsideRoot
+	}
+
+	return full, nil
 }
 
-func (api *API) List(locationPath string) ([]Location, error) {
-	response := []Location{}
-	fullPath := path.Join(api.Path, locationPath)
-	info, err := os.Stat(fullPath)
+func (api *API) List(folder string) (ListResponse, error) {
+	response := ListResponse{Folder: path.Clean("/" + strings.Trim(folder, "/")), Files: []Location{}}
+
+	full, err := api.Resolve(folder)
 	if err != nil {
 		return response, err
 	}
-	if !info.IsDir() {
-		return response, fmt.Errorf("Path doesn't exist: %s", locationPath)
+
+	entries, err := os.ReadDir(full)
+	if err != nil {
+		return response, err
 	}
-	files, _ := ioutil.ReadDir(fullPath)
-	for _, f := range files {
-		name := f.Name()
-		if name[0:1] == "." {
+
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasPrefix(name, ".") {
 			continue
 		}
+
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+
 		location := Location{
 			Type:         "file",
-			Path:         path.Join(locationPath, name),
+			Path:         path.Join(response.Folder, name),
 			Name:         name,
-			Dir:          locationPath,
-			LastModified: f.ModTime().Format(time.UnixDate),
+			Dir:          response.Folder,
+			LastModified: info.ModTime(),
 		}
-		if !f.Mode().IsRegular() {
+		if entry.IsDir() {
 			location.Type = "dir"
 			location.Path += "/"
 		}
-		response = append(response, location)
+
+		response.Files = append(response.Files, location)
 	}
-	sort.Sort(ByFolderAndName(response))
+
+	sort.Slice(response.Files, func(i, j int) bool {
+		if response.Files[i].Type != response.Files[j].Type {
+			return response.Files[i].Type == "dir"
+		}
+		return strings.ToLower(response.Files[i].Name) < strings.ToLower(response.Files[j].Name)
+	})
+
 	return response, nil
 }
 
-func (api *API) Read(filePath string) (ReadResponse, error) {
+func (api *API) Read(file string) (ReadResponse, error) {
+	clean := path.Clean("/" + strings.TrimPrefix(file, "/"))
 	response := ReadResponse{
 		Location: Location{
 			Type:         "file",
-			Path:         filePath,
-			Name:         path.Base(filePath),
-			Dir:          path.Dir(filePath),
-			LastModified: time.Now().Format(time.UnixDate),
+			Path:         clean,
+			Name:         path.Base(clean),
+			Dir:          path.Dir(clean),
+			LastModified: time.Now(),
 		},
 	}
-	fullPath := path.Join(api.Path, filePath)
-	info, err := os.Stat(fullPath)
+
+	full, err := api.Resolve(file)
 	if err != nil {
+		return response, err
+	}
+
+	info, err := os.Stat(full)
+	if err != nil {
+		// A file that is not there yet is the editor's empty page.
 		if os.IsNotExist(err) {
 			return response, nil
 		}
 		return response, err
 	}
 	if !info.Mode().IsRegular() {
-		return response, fmt.Errorf("Path is not a file: %s", filePath)
+		return response, errors.New("not a file: " + clean)
 	}
-	file, err := ioutil.ReadFile(fullPath)
+
+	contents, err := os.ReadFile(full)
 	if err != nil {
 		return response, err
 	}
-	response.LastModified = info.ModTime().Format(time.UnixDate)
-	response.Contents = string(file)
+
+	response.LastModified = info.ModTime()
+	response.Contents = string(contents)
+
 	return response, nil
 }
 
-func (api *API) Store(filePath, contents string) (StoreResponse, error) {
-	response := StoreResponse{
-		Status: "OK",
-	}
-	fullPath := path.Join(api.Path, filePath)
-	err := ioutil.WriteFile(fullPath, []byte(contents), 0644)
+func (api *API) Store(file, contents string) (StoreResponse, error) {
+	response := StoreResponse{Status: "ok"}
+
+	full, err := api.Resolve(file)
 	if err != nil {
 		return response, err
 	}
-	git := Git{
-		Filename: fullPath,
+
+	if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+		return response, err
 	}
+	if err := os.WriteFile(full, []byte(contents), 0o644); err != nil {
+		return response, err
+	}
+
+	git := Git{Filename: full}
 	response.Log, err = git.Commit()
+
 	return response, err
 }
 
-func (api *API) Error(err error) interface{} {
-	response := struct {
-		Error struct {
-			Message string `json:"message"`
-		} `json:"error"`
-	}{}
-	response.Error.Message = fmt.Sprintf("%s", err)
-	return response
-}
-
-func (api *API) ServeJSON(w http.ResponseWriter, r *http.Request, response interface{}) {
-	json, err := json.MarshalIndent(response, "", "  ")
+// ServeJSON writes one JSON document. Every API answer goes through here,
+// so the content type and the encoding are decided once.
+func (api *API) ServeJSON(w http.ResponseWriter, status int, response any) {
+	body, err := json.MarshalIndent(response, "", "  ")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(json)
+	w.WriteHeader(status)
+	if _, err := w.Write(body); err != nil {
+		log.Printf("writing response: %v", err)
+	}
+}
+
+// ServeError answers the shape the frontend reads for every failure,
+// including the uploader in mdedit.
+func (api *API) ServeError(w http.ResponseWriter, status int, err error) {
+	api.ServeJSON(w, status, map[string]string{"error": err.Error()})
 }

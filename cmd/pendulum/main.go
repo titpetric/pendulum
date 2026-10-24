@@ -1,116 +1,103 @@
+// Pendulum edits the markdown and text files under a folder, in a browser,
+// and commits every save when the folder is a git repository.
+//
+//	pendulum                          # the current folder, on :8080
+//	pendulum -addr :8081 docs         # another folder, another port
+//	pendulum -ext jpg,png             # only those two extensions upload
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"log"
-	"net"
-	"os"
-	"path"
-	"strings"
-
 	"net/http"
-
-	"github.com/elazarl/go-bindata-assetfs"
-	"github.com/go-chi/chi"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"strings"
+	"syscall"
+	"time"
 
 	"github.com/titpetric/pendulum"
 )
 
-// Serves index.html in case the requested file isn't found (or some other os.Stat error)
-func serveIndex(serve http.Handler, fs assetfs.AssetFS) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := fs.AssetInfo(path.Join(fs.Prefix, r.URL.Path))
-		if err != nil {
-			contents, err := fs.Asset(path.Join(fs.Prefix, "index.html"))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusNotFound)
-				return
-			}
-			w.Header().Set("Content-Type", "text/html")
-			w.Write(contents)
-			return
-		}
-		serve.ServeHTTP(w, r)
-	}
-}
-
-// Serve contents - if file isn't found, strip last directory before trying once more
-func serveContents(assetPath string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var err error
-
-		skipBaseFolder := strings.Join(strings.Split(strings.Trim(r.URL.Path, "/"), "/")[1:], "/")
-
-		tryFiles := []string{
-			// layout: content/post/stub.md + content/post/stub/image.jpg
-			path.Join(assetPath, r.URL.Path),
-			path.Join(assetPath, path.Dir(path.Dir(r.URL.Path)), path.Base(r.URL.Path)),
-			path.Join(assetPath, skipBaseFolder),
-		}
-		// layout: content/post/stub.md + content/images/stub/image.jpg
-		tryFiles = append(tryFiles, strings.Replace(tryFiles[0], "/post", "/images", 1))
-		tryFiles = append(tryFiles, strings.Replace(tryFiles[1], "/post", "/images", 1))
-
-		for _, requestedFile := range tryFiles {
-			os.IsNotExist(err)
-			if _, err = os.Stat(requestedFile); os.IsNotExist(err) {
-				continue
-			}
-			http.ServeFile(w, r, requestedFile)
-			return
-		}
-		http.Error(w, "File not found", http.StatusNotFound)
-	}
-}
-
-func handleError(err error, message string) {
-	if message == "" {
-		message = "Error making API call"
-	}
-	if err != nil {
-		log.Fatalf(message+": %v", err.Error())
-	}
-}
-
 func main() {
 	var (
-		addr     = flag.String("addr", ":8080", "Address for server")
-		contents = flag.String("contents", ".", "Folder for display")
+		addr     = flag.String("addr", ":8080", "address for the server")
+		contents = flag.String("contents", ".", "folder to edit")
+		ext      = flag.String("ext", strings.Join(DefaultExtensions, ","), "extensions an upload may use")
 	)
 	flag.Parse()
 
-	// log to stdout not stderr
-	log.SetOutput(os.Stdout)
-
+	// The folder is also accepted as a bare argument, which is the shortest
+	// way to start: `pendulum docs`.
 	if folder := flag.Arg(0); folder != "" {
 		*contents = folder
 	}
 
-	assetPrefix := "dist"
-	assets := assetfs.AssetFS{
-		pendulum.Asset,
-		pendulum.AssetDir,
-		pendulum.AssetInfo,
-		assetPrefix,
+	log.SetOutput(os.Stdout)
+	log.SetFlags(log.Ltime)
+
+	if err := run(*addr, *contents, *ext); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run(addr, contents, ext string) error {
+	root, err := filepath.Abs(contents)
+	if err != nil {
+		return err
+	}
+	if info, err := os.Stat(root); err != nil || !info.IsDir() {
+		return errors.New("no such folder: " + contents)
 	}
 
-	// Set absolute path to contents folder
-	cwd, _ := os.Getwd()
+	uploads, err := NewUploads(root, ext)
+	if err != nil {
+		return err
+	}
+
 	api := &API{
-		Path: path.Join(cwd, *contents),
+		Root:     root,
+		Uploads:  uploads,
+		Frontend: pendulum.Front(),
 	}
-	api.Contents = func (w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/contents/", serveContents(api.Path)).ServeHTTP(w, r)
+
+	server := &http.Server{
+		Addr:              addr,
+		Handler:           logging(Routes(api)),
+		ReadHeaderTimeout: 5 * time.Second,
 	}
-	api.Assets = serveIndex(http.FileServer(&assets), assets)
 
-	// listen socket for http server
-	log.Println("Starting http server on address " + *addr)
-	listener, err := net.Listen("tcp", *addr)
-	handleError(err, "Can't listen on addr "+*addr)
+	// Ctrl-C stops the server and lets what is in flight finish.
+	stopping := make(chan os.Signal, 1)
+	signal.Notify(stopping, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-stopping
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = server.Shutdown(ctx)
+	}()
 
-	// mount routes
-	r := chi.NewRouter()
-	MountRoutes(r, api)
-	http.Serve(listener, r)
+	log.Printf("editing %s", root)
+	log.Printf("uploads land in assets/ beside the file, as %s<ulid>.<ext>", uploadPrefix)
+	log.Printf("extensions: %s", strings.Join(uploads.Extensions, ", "))
+	log.Printf("listening on http://localhost%s", addr)
+
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	return nil
+}
+
+// logging reports one line per request: a local editor with no log is a
+// local editor with no way to see what the browser asked for.
+func logging(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		started := time.Now()
+		next.ServeHTTP(w, r)
+		log.Printf("%s %s %s", r.Method, r.URL.Path, time.Since(started).Round(time.Millisecond))
+	})
 }

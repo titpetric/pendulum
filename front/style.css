@@ -1,0 +1,252 @@
+/* Pendulum: the chrome around the editor. Two screens, one bar at the top of
+   each, and nothing that needs a build step. */
+
+:root {
+	color-scheme: light dark;
+
+	--paper: #f7f6f4;
+	--panel: #ffffff;
+	--ink: #1b1a19;
+	--ink-soft: #6c6762;
+	--line: #e3e0db;
+	--line-strong: #cdc8c0;
+	--accent: #d2402f;
+	--accent-ink: #fffaf8;
+	--ok: #2f6f4f;
+
+	--radius: 6px;
+	--ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--paper: #16161a;
+		--panel: #1d1d22;
+		--ink: #e9e6e1;
+		--ink-soft: #9b948c;
+		--line: #2c2c33;
+		--line-strong: #3f3f48;
+		--accent: #e2573f;
+		--accent-ink: #1a0f0c;
+		--ok: #7fc49b;
+	}
+}
+
+* { box-sizing: border-box; }
+
+body {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font: 15px/1.55 var(--ui);
+}
+
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--accent); }
+
+/* ── The bar ──────────────────────────────────────────────────────────── */
+
+.bar {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.6rem 1rem;
+	background: var(--panel);
+	border-bottom: 1px solid var(--line);
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+	color: var(--accent);
+}
+.brand svg { width: 20px; height: 20px; }
+
+.crumbs {
+	flex: 1;
+	min-width: 0;
+	font-family: var(--mono);
+	font-size: 0.85rem;
+	color: var(--ink-soft);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.crumbs b { color: var(--ink); font-weight: 600; }
+
+.actions { display: flex; align-items: center; gap: 0.5rem; }
+
+button {
+	font: 600 0.85rem/1 var(--ui);
+	padding: 0.5rem 0.8rem;
+	border-radius: var(--radius);
+	border: 1px solid var(--line-strong);
+	background: var(--panel);
+	color: var(--ink);
+	cursor: pointer;
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button[data-primary] {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: var(--accent-ink);
+}
+button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink); }
+
+.status {
+	font-size: 0.8rem;
+	color: var(--ink-soft);
+	font-family: var(--mono);
+	min-width: 7rem;
+	text-align: right;
+}
+.status[data-state="saved"] { color: var(--ok); }
+.status[data-state="error"] { color: var(--accent); }
+
+/* ── The listing ──────────────────────────────────────────────────────── */
+
+.listing { max-width: 56rem; margin: 1.5rem auto; padding: 0 1rem 3rem; }
+
+.files {
+	background: var(--panel);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.entry {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.6rem 0.9rem;
+	border-top: 1px solid var(--line);
+	font-family: var(--mono);
+	font-size: 0.88rem;
+}
+.entry:first-child { border-top: 0; }
+.entry:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.entry .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry .when { color: var(--ink-soft); font-size: 0.78rem; }
+.entry .mark { width: 1.1rem; color: var(--ink-soft); text-align: center; }
+.entry[data-type="dir"] .mark { color: var(--accent); }
+
+.empty { padding: 2rem 1rem; text-align: center; color: var(--ink-soft); }
+
+.error {
+	margin: 1rem 0;
+	padding: 0.7rem 0.9rem;
+	border: 1px solid var(--accent);
+	border-radius: var(--radius);
+	background: color-mix(in srgb, var(--accent) 10%, transparent);
+	font-size: 0.9rem;
+}
+
+/* ── The editor screen ────────────────────────────────────────────────── */
+
+.editor {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1px;
+	background: var(--line);
+	height: calc(100vh - 3.1rem);
+}
+
+@media (max-width: 54rem) {
+	.editor { grid-template-columns: 1fr; height: auto; }
+}
+
+.pane {
+	background: var(--paper);
+	overflow: auto;
+	padding: 1rem;
+}
+
+/* The editing pane holds the mdedit surface and fills the column with it. */
+.pane--source { display: flex; }
+.pane--source .mdedit { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.pane--source .mdedit__frame { flex: 1; display: flex; min-height: 24rem; }
+.pane--source .mdedit__frame > textarea { resize: none; height: 100%; }
+
+/* mdedit reads its own variables; these are pendulum's. */
+.mdedit {
+	--mdedit-font: var(--mono);
+	--mdedit-size: 0.88rem;
+	--mdedit-leading: 1.65;
+	--mdedit-pad: 0.9rem 1rem;
+	--mdedit-gap: 0.25rem;
+	--mdedit-radius: var(--radius);
+	--mdedit-ui-font: var(--ui);
+	--mdedit-ui-size: 0.82rem;
+	--mdedit-paper: var(--panel);
+	--mdedit-ink: var(--ink);
+	--mdedit-ink-soft: var(--ink-soft);
+	--mdedit-line: var(--line);
+	--mdedit-line-strong: var(--line-strong);
+	--mdedit-bar: color-mix(in srgb, var(--line) 45%, var(--panel));
+	--mdedit-accent: var(--accent);
+	--mdedit-accent-ink: var(--accent-ink);
+	--mdedit-accent-text: var(--accent);
+}
+
+/* ── The preview ──────────────────────────────────────────────────────── */
+
+.preview { max-width: 42rem; }
+.preview > :first-child { margin-top: 0; }
+.preview h1, .preview h2, .preview h3 { line-height: 1.25; letter-spacing: -0.01em; }
+.preview h1 { font-size: 1.9rem; }
+.preview h2 { font-size: 1.5rem; }
+.preview h3 { font-size: 1.2rem; }
+.preview a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.preview img { max-width: 100%; height: auto; border-radius: var(--radius); }
+.preview blockquote {
+	margin: 1.2rem 0;
+	padding: 0.1rem 0 0.1rem 1rem;
+	border-left: 3px solid var(--line-strong);
+	color: var(--ink-soft);
+}
+.preview code {
+	font-family: var(--mono);
+	font-size: 0.86em;
+	background: color-mix(in srgb, var(--line) 60%, transparent);
+	padding: 0.1em 0.3em;
+	border-radius: 3px;
+}
+.preview pre {
+	background: var(--panel);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding: 0.9rem 1rem;
+	overflow-x: auto;
+}
+.preview pre code { background: none; padding: 0; font-size: 0.85rem; }
+.preview table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+.preview th, .preview td { border: 1px solid var(--line); padding: 0.35rem 0.6rem; text-align: left; }
+.preview th { background: color-mix(in srgb, var(--line) 40%, transparent); }
+
+/* A page break in the source reads as one in the preview. */
+.preview hr.pagebreak {
+	border: 0;
+	border-top: 1px dashed var(--line-strong);
+	margin: 2rem 0;
+	position: relative;
+	overflow: visible;
+}
+.preview hr.pagebreak::after {
+	content: "page break";
+	position: absolute;
+	top: -0.7rem;
+	left: 50%;
+	transform: translateX(-50%);
+	background: var(--paper);
+	padding: 0 0.6rem;
+	color: var(--ink-soft);
+	font-size: 0.72rem;
+	font-style: italic;
+}
