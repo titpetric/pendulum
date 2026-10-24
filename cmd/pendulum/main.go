@@ -92,8 +92,8 @@ func run(addr, contents, ext string) error {
 	return nil
 }
 
-// logging reports one line per request: a local editor with no log is a
-// local editor with no way to see what the browser asked for.
+// logging reports one line per request, so the terminal shows what the
+// browser requested.
 func logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		started := time.Now()

@@ -11,8 +11,8 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 )
 
-// The preview renders here rather than in the browser, so the editor ships
-// no markdown parser of its own. Raw HTML passes through: a document that
+// The preview renders here, so the editor ships no markdown parser of its
+// own. Raw HTML passes through: a document that
 // carries a <div> or an <iframe> is the author's own file, on the author's
 // own machine.
 var markdown = goldmark.New(
@@ -36,8 +36,8 @@ var (
 )
 
 // Render answers the HTML the preview pane shows for one document.
-// `document` is the path being edited, which is what the relative links in
-// it resolve against.
+// `document` is the path being edited: the relative links in it resolve
+// against that.
 func Render(body, document string) (string, error) {
 	var out bytes.Buffer
 	if err := markdown.Convert([]byte(Transform(body, document)), &out); err != nil {
@@ -47,8 +47,8 @@ func Render(body, document string) (string, error) {
 	return out.String(), nil
 }
 
-// Transform is what the document goes through before markdown sees it: the
-// conventions a folder of posts carries that markdown has no syntax for.
+// Transform rewrites the document before markdown sees it: the conventions
+// a folder of posts carries that markdown has no syntax for.
 func Transform(body, document string) string {
 	body = transformMeta(body)
 	body = pageBreaks.ReplaceAllString(body, `<hr class="pagebreak"/>`)

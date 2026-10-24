@@ -17,9 +17,8 @@ type Git struct {
 }
 
 func (r *Git) Commit() (string, error) {
-	// Every command runs with cmd.Dir set rather than by changing the
-	// process directory: the server answers requests in parallel, and a
-	// chdir would move the ground under all of them.
+	// Every command runs with cmd.Dir set: the server answers requests in
+	// parallel, and a chdir moves the ground under all of them.
 	folder := filepath.Dir(r.Filename)
 
 	if r.exec(folder, "git", "rev-parse", "--is-inside-work-tree") != "true" {

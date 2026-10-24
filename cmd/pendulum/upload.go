@@ -19,11 +19,11 @@ import (
 
 // Uploads stores what the editor pastes, drops or picks.
 //
-// A stored file lands in an assets/ folder beside the document it was
-// pasted into, under a name this side chooses: pendulum_<ulid>.<ext>. The
+// A stored file lands in an assets/ folder beside the document it belongs
+// to, under a name this side chooses: pendulum_<ulid>.<ext>. The
 // name the browser sent decides nothing except the extension, and the
 // extension has to be one of Extensions. Beside each file sits
-// pendulum_<ulid>.json with what was known about it at the time.
+// pendulum_<ulid>.json with everything the request carried.
 //
 // The markdown gets a relative link (assets/pendulum_<ulid>.png), so the
 // folder stays portable: whatever publishes it resolves the link the same

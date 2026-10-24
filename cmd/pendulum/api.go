@@ -53,8 +53,8 @@ type StoreResponse struct {
 var errOutsideRoot = errors.New("path is outside the folder being edited")
 
 // Resolve answers the absolute path for a request path, refusing anything
-// that climbs out of Root. A browser can ask for ../../etc/passwd, and the
-// editor serves whatever folder it was started in.
+// that climbs out of Root. A browser can send ../../etc/passwd, and the
+// editor serves whatever folder it runs in.
 func (api *API) Resolve(requested string) (string, error) {
 	clean := path.Clean("/" + strings.TrimPrefix(requested, "/"))
 	full := filepath.Join(api.Root, filepath.FromSlash(clean))
@@ -176,8 +176,8 @@ func (api *API) Store(file, contents string) (StoreResponse, error) {
 	return response, err
 }
 
-// ServeJSON writes one JSON document. Every API answer goes through here,
-// so the content type and the encoding are decided once.
+// ServeJSON writes one JSON document. Every API answer calls it, so the
+// content type and the encoding are set in one place.
 func (api *API) ServeJSON(w http.ResponseWriter, status int, response any) {
 	body, err := json.MarshalIndent(response, "", "  ")
 	if err != nil {

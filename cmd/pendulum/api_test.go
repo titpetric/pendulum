@@ -53,8 +53,8 @@ func TestAPIListReadStore(t *testing.T) {
 		t.Errorf("contents: %q", read.Contents)
 	}
 
-	// A file that does not exist is an empty page, which is how the editor
-	// opens a new one.
+	// A file that does not exist reads as an empty page: that is how the
+	// editor opens a new one.
 	get(t, server.URL+"/api/read/post/fresh.md", &read)
 	if read.Contents != "" {
 		t.Errorf("a missing file should read empty, got %q", read.Contents)
@@ -110,9 +110,9 @@ func TestAPIUploadAndServe(t *testing.T) {
 		t.Fatalf("url: %v", answer)
 	}
 
-	// The preview asks for the link under the document's own folder, and
-	// the file sits beside the document: the candidate ladder is what
-	// bridges that.
+	// The preview requests the link under the document's own folder, and
+	// the file sits beside the document: the candidate ladder bridges the
+	// two.
 	served, err := http.Get(server.URL + "/contents/post/stub/" + link)
 	if err != nil {
 		t.Fatal(err)
@@ -154,7 +154,7 @@ func TestAPIUploadRefusesExtension(t *testing.T) {
 }
 
 // TestAPIStaysInsideRoot pins the guard: an encoded traversal reads nothing
-// above the folder the server was started in.
+// above the folder the server runs in.
 func TestAPIStaysInsideRoot(t *testing.T) {
 	server, _ := newServer(t)
 

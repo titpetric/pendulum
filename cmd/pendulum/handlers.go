@@ -41,9 +41,8 @@ func (api *API) StoreHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // PreviewHandler renders the markdown as the preview pane shows it. The
-// browser holds the text that is being typed, so the document arrives in
-// the request rather than being read off disk; `path` is what relative
-// image links resolve against.
+// browser holds the text being typed, so the document arrives in the
+// request; `path` is what relative image links resolve against.
 func (api *API) PreviewHandler(w http.ResponseWriter, r *http.Request) {
 	html, err := Render(r.PostFormValue("body"), r.PostFormValue("path"))
 	if err != nil {
@@ -85,8 +84,8 @@ func (api *API) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	api.ServeJSON(w, http.StatusOK, map[string]any{"url": url, "name": meta.Name, "size": meta.Size})
 }
 
-// ContentsHandler serves the folder being edited, which is how the preview
-// pane shows images that are not on the web yet.
+// ContentsHandler serves the folder being edited: that is where the
+// preview pane reads images that are not on the web yet.
 //
 // A folder of posts keeps its images in more than one shape: beside the
 // document, in a folder named after it, in an assets/ folder beside it, or

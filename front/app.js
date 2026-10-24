@@ -153,8 +153,8 @@ async function editing(file) {
 		uploads: {
 			endpoint: "/api/upload",
 			field: "file",
-			// The server stores beside the document, so it has to know
-			// which document the paste happened in.
+			// The server stores beside the document, so the request
+			// carries which document the paste landed in.
 			params: () => ({ path: file }),
 			accept: ["image/"],
 			maxBytes: 16 * 1024 * 1024,
