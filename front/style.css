@@ -158,26 +158,40 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 	height: calc(100vh - 3.1rem);
 }
 
-@media (max-width: 54rem) {
-	.editor { grid-template-columns: 1fr; height: auto; }
-}
-
+/* A grid cell is as wide as its column, and a wide table or a long line of
+   code in it scrolls the pane, not the page: a track takes its item's
+   min-content width until the item says otherwise. */
 .pane {
 	background: var(--paper);
 	overflow: auto;
+	min-width: 0;
 	padding: 1rem;
 }
 
-/* The editing pane holds the mdedit surface and fills the column with it. */
-.pane--source { display: flex; }
-.pane--source .mdedit { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-.pane--source .mdedit__frame { flex: 1; display: flex; min-height: 24rem; }
-.pane--source .mdedit__frame > textarea { resize: none; height: 100%; }
+/* The editing pane holds the mdedit surface: the bar stays at the top of the
+   column and the surface takes the rest of it, scrolling itself. The hidden
+   textarea sits in the frame too, and `hidden` keeps it out of the layout. */
+.pane--source { display: flex; overflow: hidden; }
+.pane--source .mdedit { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.pane--source .mdedit__frame { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.pane--source .mdedit__surface { flex: 1; min-height: 0; resize: none; }
 
-/* mdedit reads its own variables; these are pendulum's. */
+/* One column under a narrow window: each pane is as tall as what it holds,
+   and the surface keeps a page of writing room. */
+@media (max-width: 54rem) {
+	.editor { grid-template-columns: 1fr; height: auto; }
+	.pane--source { overflow: visible; }
+	.pane--source .mdedit__surface { min-height: 24rem; }
+}
+
+/* mdedit reads its own variables; these are pendulum's. The document sets in
+   the page's own face and the markers, the code spans and the fenced blocks
+   stay monospace. */
 .mdedit {
+	--mdedit-prose-font: var(--ui);
+	--mdedit-code-font: var(--mono);
 	--mdedit-font: var(--mono);
-	--mdedit-size: 0.88rem;
+	--mdedit-size: 0.95rem;
 	--mdedit-leading: 1.65;
 	--mdedit-pad: 0.9rem 1rem;
 	--mdedit-gap: 0.25rem;

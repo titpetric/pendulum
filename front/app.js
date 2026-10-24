@@ -67,10 +67,18 @@ function when(stamp) {
 	return Number.isNaN(date.valueOf()) ? "" : date.toLocaleString();
 }
 
+// rebase points the page's relative links at one folder. Every URL the app
+// itself uses starts with a slash, so the base reaches the document alone:
+// the images it draws, in the surface and in the preview.
+function rebase(folder) {
+	document.querySelector("base").href = folder;
+}
+
 // ── The listing ───────────────────────────────────────────────────────────
 
 async function listing(folder) {
 	app.innerHTML = bar(folder, `<button data-new>New file</button>`);
+	rebase("/");
 
 	const body = document.createElement("div");
 	body.className = "listing";
@@ -130,9 +138,15 @@ async function editing(file) {
 	const screen = document.createElement("div");
 	screen.className = "editor";
 	screen.innerHTML = `
-		<div class="pane pane--source"><textarea id="source" spellcheck="false"></textarea></div>
+		<div class="pane pane--source"><textarea id="source"></textarea></div>
 		<div class="pane"><article class="preview"></article></div>`;
 	app.appendChild(screen);
+
+	// The surface draws the pictures the document points at, and a relative
+	// address in it has to answer the same file the published page answers.
+	// The base is the document's own folder under /contents, the path the
+	// server rewrites a preview image to.
+	rebase(`/contents${file.replace(/\.[^./]*$/, "")}/`);
 
 	const status = app.querySelector(".status");
 	const article = screen.querySelector(".preview");
@@ -148,7 +162,9 @@ async function editing(file) {
 	source.value = document_.contents;
 
 	const editor = new MarkdownEditor(source, {
-		// No Preview button: the pane beside it is always on.
+		// No Preview button, and no `preview` for the editor to call: the
+		// pane beside it is always on and holds the server's render. The
+		// pilcrow switches the marker characters on the surface.
 		toolbar: [...TOOLBAR_FULL, "upload"],
 		uploads: {
 			endpoint: "/api/upload",
@@ -206,12 +222,13 @@ async function editing(file) {
 		}
 	});
 
-	// Scroll the two panes together, by percentage: the source and the
+	// Scroll the two panes together, by percentage: the surface and the
 	// rendered document are different heights, so an offset in lines would
-	// drift apart immediately.
+	// drift apart immediately. The surface scrolls itself; the preview
+	// scrolls in its pane.
 	const pane = article.parentElement;
-	link(editor.field, pane);
-	link(pane, editor.field);
+	link(editor.surface, pane);
+	link(pane, editor.surface);
 
 	window.addEventListener("keydown", (event) => {
 		if ((event.metaKey || event.ctrlKey) && event.key === "s") {
