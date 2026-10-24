@@ -2,7 +2,7 @@
 
 An editor for the markdown and text files in a folder. It runs where the files are, saves them in place, and commits every save when the folder is a git repository.
 
-![Pendulum editing a post: toolbar and highlighted source on the left, the rendered page on the right](images/pendulum.png)
+![Pendulum editing a post: the markdown surface with its toolbar on the left, the rendered page on the right](images/pendulum.png)
 
 ## Run it
 
@@ -32,7 +32,9 @@ The folder is also a bare argument, which is the shortest way to start: `pendulu
 
 ## Writing
 
-The editing surface is [mdedit](https://github.com/titpetric/mdedit): a toolbar over a textarea, with the markdown source highlighted as it is typed. The pane beside it renders through the same server, so the preview shows what the file holds.
+The editing surface is [mdedit](https://github.com/titpetric/mdedit): one surface that holds the markdown itself. Type `###` and the line reads at a heading's size from the third character on; a table draws as a table with editable cells, and an image draws the picture it points at. The pilcrow at the right of the toolbar shows or hides the marker characters, and the textarea the editor mounts over stays in the page, hidden, carrying the value for the form.
+
+The pane beside it is the same document rendered by the server. The two show different things. The surface is the source, markers and all, in the characters a save writes. The pane is the page the folder publishes: goldmark, the conventions below, and a relative image resolved the way whatever publishes the folder resolves it.
 
 Ctrl-S saves. A save writes the file, then `git add` and `git commit` where the folder is a repository and git has an identity configured. Everything stays on the machine the editor runs on.
 
@@ -68,11 +70,18 @@ A relative image resolves against the document: beside it, in a folder named aft
 | Command        | What it does                                 |
 |----------------|----------------------------------------------|
 | `make test`    | `go vet` and `go test ./...`                 |
+| `make check`   | the editor screen in a browser               |
 | `make build`   | the binary, in `build/`                      |
 | `make release` | the release matrix, linux, macOS and windows |
 | `make docker`  | the image                                    |
 | `make mdedit`  | refresh the vendored editor bundle           |
 
 The frontend is HTML, CSS and ES modules under `front/`, built into the binary with `embed`. There is no node toolchain and no build step: what is in the folder is what the browser receives. `make mdedit MDEDIT=../mdedit` copies a newer editor bundle in from a checkout of [mdedit](https://github.com/titpetric/mdedit).
+
+`make check` is what proves the editor screen after such a copy. It builds the binary, serves a folder it writes itself, and drives chromium over the page: the listing, a file opened, typing, Ctrl-S and the Save button, the dirty marker, the pilcrow, the scroll sync, a pasted image and the panel over it. Two variables point at what the machine has, where playwright and chromium are not installed beside the repository:
+
+```sh
+PLAYWRIGHT=/path/to/playwright/index.mjs CHROMIUM=/usr/lib/chromium/chromium make check
+```
 
 Written by [@TitPetric](https://github.com/titpetric), licensed under [WTFPL](http://www.wtfpl.net/txt/copying/).
