@@ -2,7 +2,7 @@ BINARY  := pendulum
 LDFLAGS := -s -w
 MDEDIT  ?= ../mdedit
 
-.PHONY: all build test run docker release mdedit clean
+.PHONY: all build test check run docker release mdedit clean
 
 all: test build
 
@@ -12,6 +12,12 @@ build:
 test:
 	go vet ./...
 	go test ./...
+
+# The editor screen in a browser: the check builds the binary, serves a
+# folder it writes itself, and drives chromium over it. PLAYWRIGHT points at
+# the module where it is not installed here, CHROMIUM at the browser.
+check:
+	node tests/browser.mjs
 
 run:
 	go run ./cmd/pendulum
