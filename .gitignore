@@ -1,7 +1,4 @@
 /build
-/test
 /contents
 /pendulum
-/codeship.aes
-/.env
-/assets_bindata.go
+/test

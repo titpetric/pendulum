@@ -1,7 +1,0 @@
-pendulum:
-  build:
-    dockerfile: Dockerfile.build
-  add_docker: true
-  encrypted_env_file: .env.encrypted
-  volumes:
-    - ./:/go/src/github.com/titpetric/pendulum

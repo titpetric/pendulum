@@ -1,19 +1,41 @@
-all:
-	@echo 'Usage: make <prepare|build-go|build-docker>'
+BINARY  := pendulum
+LDFLAGS := -s -w
+MDEDIT  ?= ../mdedit
 
-build-go:
-	./build.sh
-	cd build && gzip -k pendulum* && cd ..
-	@echo "Build finished"
+.PHONY: all build test run docker release mdedit clean
 
-build-docker:
-	docker build --rm -t titpetric/pendulum --build-arg GITVERSION=${CI_COMMIT_ID} --build-arg GITTAG=${CI_TAG_AUTO} .
+all: test build
 
-prepare:
-	@rm -rf build && mkdir build
-	@date +"%y%m%d-%H%M" > build/.date
-	@echo "Build folder prepared"
-	cd front && ./build.sh && cd ..
-	go generate
+build:
+	CGO_ENABLED=0 go build -trimpath -ldflags '$(LDFLAGS)' -o build/$(BINARY) ./cmd/pendulum
 
-.PHONY: all build-go build-docker prepare
+test:
+	go vet ./...
+	go test ./...
+
+run:
+	go run ./cmd/pendulum
+
+docker:
+	docker build --rm -t titpetric/$(BINARY) .
+
+# The release matrix the binaries on the releases page are built from.
+release:
+	@rm -rf build && mkdir -p build
+	@for os in linux darwin windows; do \
+		for arch in amd64 arm64; do \
+			out=build/$(BINARY)-$$os-$$arch; \
+			[ $$os = windows ] && out=$$out.exe; \
+			echo $$out; \
+			GOOS=$$os GOARCH=$$arch CGO_ENABLED=0 \
+				go build -trimpath -ldflags '$(LDFLAGS)' -o $$out ./cmd/pendulum || exit 1; \
+		done; \
+	done
+	@find build -type f
+
+# Refresh the editor from a checkout of github.com/titpetric/mdedit.
+mdedit:
+	cp $(MDEDIT)/dist/mdedit.min.js $(MDEDIT)/dist/mdedit.min.css front/vendor/mdedit/
+
+clean:
+	rm -rf build

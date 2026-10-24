@@ -1,1 +1,5 @@
-build
+/build
+/contents
+/pendulum
+.git
+images
