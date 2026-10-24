@@ -190,6 +190,7 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 	--mdedit-line: var(--line);
 	--mdedit-line-strong: var(--line-strong);
 	--mdedit-bar: color-mix(in srgb, var(--line) 45%, var(--panel));
+	--mdedit-code: color-mix(in srgb, var(--line) 30%, var(--panel));
 	--mdedit-accent: var(--accent);
 	--mdedit-accent-ink: var(--accent-ink);
 	--mdedit-accent-text: var(--accent);
