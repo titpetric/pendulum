@@ -216,3 +216,29 @@ func TestMediaKind(t *testing.T) {
 		}
 	}
 }
+
+// The asset shortcode reads in both of the forms a folder of posts carries:
+// hexo's single braces and bare address, and hugo's double braces and quoted
+// one. Issue #3.
+func TestTransformAssetShortcodes(t *testing.T) {
+	// The address resolves against the document afterwards, so what is
+	// under test is the caption and the file the marker names.
+	for _, tc := range []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"hexo, bare", "{% asset_img shot.png %}", "![](/contents/post/stub/shot.png)"},
+		{"hexo, with a caption", `{% asset_img shot.png "A shot" %}`, "![A shot](/contents/post/stub/shot.png)"},
+		{"hugo, quoted", `{{% asset_img "shot.png" %}}`, "![](/contents/post/stub/shot.png)"},
+		{"hugo, quoted with a caption", `{{% asset_img "shot.png" "A shot" %}}`, "![A shot](/contents/post/stub/shot.png)"},
+		{"hugo braces, bare address", `{{% asset_img shot.png %}}`, "![](/contents/post/stub/shot.png)"},
+		{"hexo braces, quoted address", `{% asset_img "shot.png" %}`, "![](/contents/post/stub/shot.png)"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := Transform(tc.in, "/post/stub.md"); !strings.Contains(got, tc.want) {
+				t.Errorf("want %q in %q", tc.want, got)
+			}
+		})
+	}
+}

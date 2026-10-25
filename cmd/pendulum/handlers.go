@@ -175,3 +175,56 @@ func contentType(name string) string {
 
 	return "application/octet-stream"
 }
+
+// MkdirHandler creates one directory under the folder being edited.
+func (api *API) MkdirHandler(w http.ResponseWriter, r *http.Request) {
+	response, err := api.Mkdir(r.PathValue("path"))
+	if err != nil {
+		api.ServeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	api.ServeJSON(w, http.StatusOK, response)
+}
+
+// RenameHandler moves one entry: the path in the URL is where it stands, the
+// `to` field is where it goes.
+func (api *API) RenameHandler(w http.ResponseWriter, r *http.Request) {
+	response, err := api.Rename(r.PathValue("path"), r.PostFormValue("to"))
+	if err != nil {
+		api.ServeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	api.ServeJSON(w, http.StatusOK, response)
+}
+
+// DeleteHandler removes one file, or one directory with nothing in it.
+func (api *API) DeleteHandler(w http.ResponseWriter, r *http.Request) {
+	if err := api.Remove(r.PathValue("path")); err != nil {
+		api.ServeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	api.ServeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// SearchHandler reads the folder for the phrase in `q`.
+func (api *API) SearchHandler(w http.ResponseWriter, r *http.Request) {
+	response, err := api.Search(r.URL.Query().Get("q"))
+	if err != nil {
+		api.ServeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	api.ServeJSON(w, http.StatusOK, response)
+}
+
+// SettingsHandler answers what the page cannot read on its own: the flags
+// behind the editor's behaviour.
+func (api *API) SettingsHandler(w http.ResponseWriter, r *http.Request) {
+	api.ServeJSON(w, http.StatusOK, map[string]any{
+		"autosave_seconds": int(api.Autosave.Seconds()),
+		"extensions":       api.Uploads.Extensions,
+	})
+}

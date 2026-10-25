@@ -20,6 +20,12 @@ type API struct {
 	Root     string
 	Uploads  *Uploads
 	Frontend fs.FS
+
+	// How long an edited document waits before the editor saves it by
+	// itself. Zero leaves every save to the writer, which is the default: a
+	// save commits where the folder is a repository, and an unprompted
+	// commit carries no message anyone wrote.
+	Autosave time.Duration
 }
 
 // Location is one entry in a folder listing.

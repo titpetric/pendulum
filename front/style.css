@@ -103,6 +103,9 @@ a:hover { color: var(--accent); }
 .crumbs b { color: var(--ink); font-weight: 600; }
 
 .actions { display: flex; align-items: center; gap: 0.5rem; }
+/* A button says its name on one line: the search box beside them takes the
+   width that is going, and a two-line button in a bar reads as a mistake. */
+.actions button { white-space: nowrap; }
 
 button {
 	font: 600 0.85rem/1 var(--ui);
@@ -171,6 +174,86 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 	font-size: 0.88rem;
 }
 .entry:first-child { border-top: 0; }
+.entry a { display: inherit; }
+
+/* The actions on a row show where the row is pointed at, so a listing reads
+   as names and not as a column of buttons. A coarse pointer has no hover,
+   so there they stand. */
+.row-actions {
+	display: flex;
+	gap: 0.25rem;
+	opacity: 0;
+}
+.entry:hover .row-actions,
+.row-actions:focus-within { opacity: 1; }
+.row-actions button {
+	padding: 0.2rem 0.5rem;
+	font-size: 0.75rem;
+	border-color: transparent;
+	color: var(--ink-soft);
+}
+.row-actions button:hover { border-color: var(--accent); color: var(--accent); }
+
+@media (pointer: coarse) {
+	.row-actions { opacity: 1; }
+	.row-actions button { min-height: 32px; }
+}
+
+/* What a search found: the file and the line on the left, the line itself
+   beside it with the phrase marked. */
+.found {
+	margin: 0;
+	padding: 0.6rem 0.9rem;
+	border-bottom: 1px solid var(--line);
+	font-family: var(--mono);
+	font-size: 0.78rem;
+	color: var(--ink-soft);
+}
+
+.hit {
+	display: flex;
+	gap: 0.9rem;
+	align-items: baseline;
+	padding: 0.5rem 0.9rem;
+	border-top: 1px solid var(--line);
+	font-size: 0.88rem;
+}
+.hit:first-of-type { border-top: 0; }
+.hit:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.hit__where {
+	flex: 0 0 14rem;
+	font-family: var(--mono);
+	font-size: 0.78rem;
+	color: var(--ink-soft);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.hit__line { color: var(--accent); }
+.hit__text {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-family: var(--mono);
+	font-size: 0.8rem;
+}
+.hit mark { background: color-mix(in srgb, var(--accent) 25%, transparent); color: inherit; }
+
+/* The search box in the bar: a field that shortens before the actions do. */
+.find {
+	flex: 0 1 16rem;
+	min-width: 6rem;
+	padding: 0.45rem 0.7rem;
+	border: 1px solid var(--line-strong);
+	border-radius: var(--radius);
+	background: var(--panel);
+	color: var(--ink);
+	font: inherit;
+	font-size: 0.85rem;
+}
+.find:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .entry:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 .entry .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .entry .when { color: var(--ink-soft); font-size: 0.78rem; }
@@ -190,13 +273,33 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 
 /* ── The editor screen ────────────────────────────────────────────────── */
 
+/* Two panes and the handle between them. --split is what the preview takes
+   against the surface's one, so dragging the handle writes one number and
+   the page remembers it. With the preview folded the surface takes the row
+   and the handle goes with it. */
 .editor {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 1px;
+	grid-template-columns: 1fr 6px var(--split, 1fr);
 	background: var(--line);
 	flex: 1;
 	min-height: 0;
+}
+
+.editor[data-panes="source"] { grid-template-columns: 1fr; }
+.editor[data-panes="source"] .split,
+.editor[data-panes="source"] .pane--preview { display: none; }
+
+/* The handle is a hairline at rest and the accent under the pointer, wide
+   enough to catch with either. */
+.split {
+	background: var(--line);
+	cursor: col-resize;
+	touch-action: none;
+}
+.split:hover, .split:focus-visible { background: var(--accent); outline: none; }
+
+@media (pointer: coarse) {
+	.editor { grid-template-columns: 1fr 12px var(--split, 1fr); }
 }
 
 /* A grid cell is as wide as its column, and a wide table or a long line of
@@ -230,7 +333,9 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 /* One column under a narrow window: each pane is as tall as what it holds,
    and the surface keeps a page of writing room. */
 @media (max-width: 54rem) {
-	.editor { grid-template-columns: 1fr; flex: none; }
+	.editor,
+	.editor[data-panes="source"] { grid-template-columns: 1fr; flex: none; }
+	.split { display: none; }
 	.pane--source { overflow: visible; }
 	.pane--source .mdedit__surface { min-height: 24rem; }
 }
@@ -334,6 +439,17 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 	overflow-x: auto;
 }
 .preview pre code { background: none; padding: 0; font-size: 0.85rem; }
+
+/* A fenced block in the preview is painted by the same colourer the surface
+   uses, and its classes read these four. They are named here because the
+   colours live on the editor's own root, which the preview stands outside
+   of: one language, one set of colours, on both halves of the screen. */
+.preview pre {
+	--mdedit-keyword: var(--code-keyword);
+	--mdedit-string: var(--code-string);
+	--mdedit-number: var(--code-number);
+	--mdedit-comment: var(--ink-soft);
+}
 .preview table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
 .preview th, .preview td { border: 1px solid var(--line); padding: 0.35rem 0.6rem; text-align: left; }
 .preview th { background: color-mix(in srgb, var(--line) 40%, transparent); }

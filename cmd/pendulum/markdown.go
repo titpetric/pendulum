@@ -27,9 +27,13 @@ var (
 	// Leanpub asides open with A>, which markdown reads as a paragraph.
 	leanpubAside = regexp.MustCompile(`(?m)^A>`)
 
-	// Hugo and hexo write images through a shortcode.
-	hugoAsset      = regexp.MustCompile(`\{%\s*asset_img\s+([^\s]+)\s*%\}`)
-	hugoAssetTitle = regexp.MustCompile(`\{%\s*asset_img\s+([^\s]+)\s+["']([^"']+)["']\s*%\}`)
+	// Hugo and hexo write images through a shortcode. Hexo spells it
+	// `{% asset_img url "caption" %}`; hugo takes double braces and quotes
+	// the address, `{{% asset_img "url" "caption" %}}`. Both forms read
+	// here, with the braces, the quotes and the caption each optional, so a
+	// folder of posts written for either renders without being touched.
+	hugoAsset      = regexp.MustCompile(`\{\{?%\s*asset_img\s+["']?([^\s"']+)["']?\s*%\}\}?`)
+	hugoAssetTitle = regexp.MustCompile(`\{\{?%\s*asset_img\s+["']?([^\s"']+)["']?\s+["']([^"']+)["']\s*%\}\}?`)
 
 	// An image link, title and target apart.
 	imageLink = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)

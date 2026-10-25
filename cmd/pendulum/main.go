@@ -27,6 +27,7 @@ func main() {
 		addr     = flag.String("addr", ":8080", "address for the server")
 		contents = flag.String("contents", ".", "folder to edit")
 		ext      = flag.String("ext", strings.Join(DefaultExtensions, ","), "extensions an upload may use")
+		autosave = flag.Duration("autosave", 0, "save an edited document by itself after this long idle; 0 waits for the writer")
 	)
 	flag.Parse()
 
@@ -39,12 +40,12 @@ func main() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.Ltime)
 
-	if err := run(*addr, *contents, *ext); err != nil {
+	if err := run(*addr, *contents, *ext, *autosave); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(addr, contents, ext string) error {
+func run(addr, contents, ext string, autosave time.Duration) error {
 	root, err := filepath.Abs(contents)
 	if err != nil {
 		return err
@@ -62,6 +63,7 @@ func run(addr, contents, ext string) error {
 		Root:     root,
 		Uploads:  uploads,
 		Frontend: pendulum.Front(),
+		Autosave: autosave,
 	}
 
 	server := &http.Server{
@@ -83,6 +85,9 @@ func run(addr, contents, ext string) error {
 	log.Printf("editing %s", root)
 	log.Printf("uploads land in assets/ beside the file, as %s<ulid>.<ext>", uploadPrefix)
 	log.Printf("extensions: %s", strings.Join(uploads.Extensions, ", "))
+	if autosave > 0 {
+		log.Printf("autosave after %s idle, and every save commits", autosave)
+	}
 	log.Printf("listening on http://localhost%s", addr)
 
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

@@ -228,3 +228,152 @@ func post(t *testing.T, url string, values url.Values, into any) {
 		t.Fatal(err)
 	}
 }
+
+// The listing's own actions: a directory made, an entry renamed, an entry
+// removed. Issue #6.
+func TestAPIFileActions(t *testing.T) {
+	server, root := newServer(t)
+
+	var made Location
+	post(t, server.URL+"/api/mkdir/notes/2026", url.Values{}, &made)
+	if made.Type != "dir" || made.Path != "/notes/2026/" {
+		t.Fatalf("mkdir: %+v", made)
+	}
+	if info, err := os.Stat(filepath.Join(root, "notes", "2026")); err != nil || !info.IsDir() {
+		t.Fatalf("the directory is not there: %v", err)
+	}
+
+	// Making it again answers with the reason.
+	var again map[string]string
+	post(t, server.URL+"/api/mkdir/notes/2026", url.Values{}, &again)
+	if again["error"] == "" {
+		t.Errorf("a directory already there: %+v", again)
+	}
+
+	// A rename moves the file and carries its new name back.
+	var moved Location
+	post(t, server.URL+"/api/rename/post/stub.md", url.Values{"to": {"/notes/2026/moved.md"}}, &moved)
+	if moved.Path != "/notes/2026/moved.md" {
+		t.Fatalf("rename: %+v", moved)
+	}
+	if _, err := os.Stat(filepath.Join(root, "post", "stub.md")); !os.IsNotExist(err) {
+		t.Errorf("the file is still where it was")
+	}
+	if _, err := os.Stat(filepath.Join(root, "notes", "2026", "moved.md")); err != nil {
+		t.Errorf("the file is not where it went: %v", err)
+	}
+
+	// A directory with something in it stays.
+	var refused map[string]string
+	post(t, server.URL+"/api/delete/notes", url.Values{}, &refused)
+	if refused["error"] == "" {
+		t.Errorf("a directory with a file in it: %+v", refused)
+	}
+
+	// A file goes, and so does the directory it leaves empty.
+	var gone map[string]string
+	post(t, server.URL+"/api/delete/notes/2026/moved.md", url.Values{}, &gone)
+	if gone["status"] != "ok" {
+		t.Fatalf("delete: %+v", gone)
+	}
+	post(t, server.URL+"/api/delete/notes/2026", url.Values{}, &gone)
+	if gone["status"] != "ok" {
+		t.Fatalf("delete the empty directory: %+v", gone)
+	}
+	if _, err := os.Stat(filepath.Join(root, "notes", "2026")); !os.IsNotExist(err) {
+		t.Errorf("the directory is still there")
+	}
+}
+
+// Nothing reaches outside the folder being edited. A traversal in the URL
+// never arrives: net/http cleans the path and redirects. One in a form
+// field does arrive, and the guard answers it.
+func TestAPIFileActionsStayInsideRoot(t *testing.T) {
+	server, root := newServer(t)
+
+	var moved Location
+	post(t, server.URL+"/api/rename/post/stub.md", url.Values{"to": {"../outside.md"}}, &moved)
+	if moved.Path != "/outside.md" {
+		t.Errorf("a climbing path names one inside the folder: %+v", moved)
+	}
+	if _, err := os.Stat(filepath.Join(filepath.Dir(root), "outside.md")); !os.IsNotExist(err) {
+		t.Errorf("a file landed outside the folder being edited")
+	}
+	if _, err := os.Stat(filepath.Join(root, "outside.md")); err != nil {
+		t.Errorf("the file landed somewhere else: %v", err)
+	}
+
+	// Under the handlers, a climbing path is cleaned to one inside the
+	// folder before anything acts on it, the way reading and storing
+	// already treat one: `../outside` names `/outside` here.
+	api := &API{Root: root}
+	if _, err := api.Mkdir("../outside"); err != nil {
+		t.Errorf("mkdir: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "outside")); err != nil {
+		t.Errorf("the directory landed somewhere else: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(filepath.Dir(root), "outside")); !os.IsNotExist(err) {
+		t.Errorf("a directory landed above the folder being edited")
+	}
+
+	if err := api.Remove("../../etc/passwd"); err == nil {
+		t.Errorf("a delete of a file that is not there")
+	}
+	if err := api.Remove("/"); err == nil {
+		t.Errorf("the folder being edited went")
+	}
+}
+
+// Search reads the folder for a phrase and answers the lines carrying it.
+// Issue #7.
+func TestAPISearch(t *testing.T) {
+	server, root := newServer(t)
+
+	if err := os.WriteFile(filepath.Join(root, "post", "salt.md"), []byte("# Salt\n\nSalt the water.\nTwice.\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "post", "assets"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "post", "assets", "notes.txt"), []byte("salt\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	var found SearchResponse
+	get(t, server.URL+"/api/search?q=salt", &found)
+
+	if len(found.Hits) != 2 {
+		t.Fatalf("hits: %+v", found.Hits)
+	}
+	if found.Hits[0].Path != "/post/salt.md" || found.Hits[0].Line != 1 {
+		t.Errorf("first hit: %+v", found.Hits[0])
+	}
+	if found.Hits[1].Line != 3 || found.Hits[1].Text != "Salt the water." {
+		t.Errorf("second hit: %+v", found.Hits[1])
+	}
+	if found.Files != 1 {
+		t.Errorf("an assets folder holds what a document points at, not prose: %d files", found.Files)
+	}
+
+	// An empty query reads nothing.
+	get(t, server.URL+"/api/search?q=", &found)
+	if len(found.Hits) != 0 || found.Searched != 0 {
+		t.Errorf("an empty query: %+v", found)
+	}
+}
+
+// The page cannot see the flags the server started with, so it asks.
+func TestAPISettings(t *testing.T) {
+	server, _ := newServer(t)
+
+	var settings map[string]any
+	get(t, server.URL+"/api/settings", &settings)
+
+	if _, ok := settings["autosave_seconds"]; !ok {
+		t.Errorf("settings: %+v", settings)
+	}
+	if _, ok := settings["extensions"]; !ok {
+		t.Errorf("settings: %+v", settings)
+	}
+}
