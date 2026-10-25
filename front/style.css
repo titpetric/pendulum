@@ -14,6 +14,12 @@
 	--accent-ink: #fffaf8;
 	--ok: #2f6f4f;
 
+	/* The colour inside a fenced block. It stands on the code background,
+	   which is near the panel, so it changes with the scheme. */
+	--code-keyword: #7a4ca8;
+	--code-string: #2f6f4f;
+	--code-number: #b06a1f;
+
 	--radius: 6px;
 	--ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 	--mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
@@ -30,6 +36,10 @@
 		--accent: #e2573f;
 		--accent-ink: #1a0f0c;
 		--ok: #7fc49b;
+
+		--code-keyword: #c79ad6;
+		--code-string: #8cc79b;
+		--code-number: #e0a76a;
 	}
 }
 
@@ -44,6 +54,17 @@ body {
 
 a { color: inherit; text-decoration: none; }
 a:hover { color: var(--accent); }
+
+/* The screen is the bar and what is under it: the bar takes the height it
+   needs, the editor takes the rest. A height written into a calc() has to
+   agree with the bar's own and does not, and 2px of page scroll is a pane
+   2px short of its foot. A listing taller than the window runs past this
+   box, and the page scrolls the way a page does. */
+#app {
+	display: flex;
+	flex-direction: column;
+	height: 100dvh;
+}
 
 /* ── The bar ──────────────────────────────────────────────────────────── */
 
@@ -110,9 +131,28 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 .status[data-state="saved"] { color: var(--ok); }
 .status[data-state="error"] { color: var(--accent); }
 
+/* A phone has no room for the path beside the actions: the bar wraps and the
+   path takes the row under them, where it reads at full width. The status
+   releases the width it holds, so the bar keeps its shape. */
+@media (max-width: 30rem) {
+	.bar { flex-wrap: wrap; }
+	.crumbs { order: 3; flex-basis: 100%; }
+	.status { min-width: 0; }
+}
+
+/* A finger needs something to hit. The bar's buttons stand 32px tall of
+   their own; the brand is a line of text and does not. */
+@media (pointer: coarse) {
+	.brand { min-height: 32px; }
+}
+
 /* ── The listing ──────────────────────────────────────────────────────── */
 
-.listing { max-width: 56rem; margin: 1.5rem auto; padding: 0 1rem 3rem; }
+/* The width keeps a long file name from widening the column. The auto
+   margins that centre this one cancel the stretch a flex parent would
+   apply, which sizes it to its own content and pushes the page sideways.
+   The name is the part that then shortens to an ellipsis. */
+.listing { width: 100%; max-width: 56rem; margin: 1.5rem auto; padding: 0 1rem 3rem; }
 
 .files {
 	background: var(--panel);
@@ -155,7 +195,8 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 	grid-template-columns: 1fr 1fr;
 	gap: 1px;
 	background: var(--line);
-	height: calc(100vh - 3.1rem);
+	flex: 1;
+	min-height: 0;
 }
 
 /* A grid cell is as wide as its column, and a wide table or a long line of
@@ -176,10 +217,20 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 .pane--source .mdedit__frame { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .pane--source .mdedit__surface { flex: 1; min-height: 0; resize: none; }
 
+/* The table grid stands where the surface stood, and the editor puts the
+   surface away with `hidden` to make room for it. A display of our own
+   beats the attribute, so the frame says what hidden means here. The grid
+   then takes the column the surface had, and its rows scroll under its own
+   bar: the pane is a fixed height and does not scroll, so a table taller
+   than the window would have its last row nowhere. */
+.pane--source .mdedit__frame[hidden] { display: none; }
+.pane--source .mdedit__grid { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.pane--source .mdedit__grid-body { flex: 1; min-height: 0; overflow: auto; }
+
 /* One column under a narrow window: each pane is as tall as what it holds,
    and the surface keeps a page of writing room. */
 @media (max-width: 54rem) {
-	.editor { grid-template-columns: 1fr; height: auto; }
+	.editor { grid-template-columns: 1fr; flex: none; }
 	.pane--source { overflow: visible; }
 	.pane--source .mdedit__surface { min-height: 24rem; }
 }
@@ -205,9 +256,9 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 	--mdedit-line-strong: var(--line-strong);
 	--mdedit-bar: color-mix(in srgb, var(--line) 45%, var(--panel));
 	--mdedit-code: color-mix(in srgb, var(--line) 30%, var(--panel));
-	--mdedit-keyword: #7a4ca8;
-	--mdedit-string: #2f6f4f;
-	--mdedit-number: #b06a1f;
+	--mdedit-keyword: var(--code-keyword);
+	--mdedit-string: var(--code-string);
+	--mdedit-number: var(--code-number);
 	--mdedit-comment: var(--ink-soft);
 	--mdedit-accent: var(--accent);
 	--mdedit-accent-ink: var(--accent-ink);
@@ -216,7 +267,9 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 
 /* ── The preview ──────────────────────────────────────────────────────── */
 
-.preview { max-width: 42rem; }
+/* A bare address is one word to a browser, and one word that does not fit
+   is a pane the whole document scrolls sideways in. */
+.preview { max-width: 42rem; overflow-wrap: break-word; }
 .preview > :first-child { margin-top: 0; }
 .preview h1, .preview h2, .preview h3 { line-height: 1.25; letter-spacing: -0.01em; }
 .preview h1 { font-size: 1.9rem; }
@@ -224,6 +277,16 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 .preview h3 { font-size: 1.2rem; }
 .preview a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .preview img { max-width: 100%; height: auto; border-radius: var(--radius); }
+
+/* What the author wrote the HTML for themselves: a player, an embed. The
+   width attribute on one of those is the size of the file, not of the pane,
+   and 1280px of it in a 720px column scrolls everything beside it. */
+.preview audio, .preview video, .preview iframe {
+	max-width: 100%;
+	border-radius: var(--radius);
+}
+.preview video { height: auto; }
+.preview audio { width: 100%; }
 
 /* Where a picture sits rides on the anchor the editor's panel writes on its
    address, so the preview lays it out the way the editor drew it and the

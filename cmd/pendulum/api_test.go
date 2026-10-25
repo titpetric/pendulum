@@ -72,7 +72,7 @@ func TestAPIListReadStore(t *testing.T) {
 	}
 
 	// A browser puts a text field through a multipart form as CRLF, whatever
-	// the author typed. What lands on disk is the document, not the wire.
+	// the author typed. What lands on disk is the document the author wrote.
 	post(t, server.URL+"/api/store/post/fresh.md", url.Values{"contents": {"one\r\ntwo\rthree\n"}}, &stored)
 	written, err = os.ReadFile(filepath.Join(root, "post", "fresh.md"))
 	if err != nil || string(written) != "one\ntwo\nthree\n" {

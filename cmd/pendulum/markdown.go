@@ -33,7 +33,60 @@ var (
 
 	// An image link, title and target apart.
 	imageLink = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
+
+	// A rendered link, which the pass below reads to find the ones naming a
+	// file a browser can play. markup strips the emphasis out of a link's
+	// text: an attribute holds characters, not elements.
+	anchorLink = regexp.MustCompile(`<a href="([^"]*)"[^>]*>(.*?)</a>`)
+	markup     = regexp.MustCompile(`<[^>]*>`)
 )
+
+// mediaExtensions names the files a browser can play, by the player each one
+// needs. The editing surface beside this pane draws the same links as
+// players, and this is mdedit's own list: two panes over one document that
+// disagreed about it would be two documents.
+var mediaExtensions = map[string]string{
+	"mp3": "audio", "m4a": "audio", "aac": "audio", "oga": "audio", "ogg": "audio",
+	"opus": "audio", "wav": "audio", "flac": "audio", "weba": "audio",
+	"mp4": "video", "m4v": "video", "webm": "video", "ogv": "video", "mov": "video",
+}
+
+// MediaKind answers "audio", "video", or an empty string for an address that
+// names neither. A query or a fragment on the end says nothing about the
+// file, so neither is read.
+func MediaKind(href string) string {
+	address := href
+	if cut := strings.IndexAny(address, "?#"); cut >= 0 {
+		address = address[:cut]
+	}
+	dot := strings.LastIndex(address, ".")
+	if dot < 0 {
+		return ""
+	}
+
+	return mediaExtensions[strings.ToLower(address[dot+1:])]
+}
+
+// players turns a link to a recording or a capture into the player for it.
+// The element loads its length and no more until the reader plays it, so a
+// document carrying an hour of audio costs one short request to preview.
+func players(rendered string) string {
+	if !strings.Contains(rendered, "<a href=") {
+		return rendered
+	}
+
+	return anchorLink.ReplaceAllStringFunc(rendered, func(match string) string {
+		parts := anchorLink.FindStringSubmatch(match)
+		kind := MediaKind(parts[1])
+		if kind == "" {
+			return match
+		}
+
+		label := strings.ReplaceAll(strings.TrimSpace(markup.ReplaceAllString(parts[2], "")), `"`, "&quot;")
+		return "<" + kind + ` class="media" controls preload="metadata" src="` + parts[1] +
+			`" title="` + label + `" aria-label="` + label + `"></` + kind + ">"
+	})
+}
 
 // Render answers the HTML the preview pane shows for one document.
 // `document` is the path being edited: the relative links in it resolve
@@ -44,7 +97,9 @@ func Render(body, document string) (string, error) {
 		return "", err
 	}
 
-	return out.String(), nil
+	// A link to a file a browser can play is a player. Code blocks are
+	// escaped by now, so a link shown as code stays the text it is.
+	return players(out.String()), nil
 }
 
 // Transform rewrites the document before markdown sees it: the conventions

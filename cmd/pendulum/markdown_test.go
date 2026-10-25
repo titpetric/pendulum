@@ -141,3 +141,78 @@ func containsString(list []string, want string) bool {
 	}
 	return false
 }
+
+// A link to a file a browser can play renders as the player for it, the way
+// the editing surface beside the preview draws it.
+func TestRenderMedia(t *testing.T) {
+	cases := []struct {
+		name  string
+		in    string
+		want  string
+		plain bool
+	}{
+		{
+			name: "a recording",
+			in:   "[Episode 3](assets/ep3.mp3)",
+			want: `<audio class="media" controls preload="metadata" src="assets/ep3.mp3" title="Episode 3" aria-label="Episode 3"></audio>`,
+		},
+		{
+			name: "a capture from anywhere",
+			in:   "[A walk](https://example.com/clip.mp4)",
+			want: `<video class="media" controls preload="metadata" src="https://example.com/clip.mp4"`,
+		},
+		{
+			name: "a query on the address",
+			in:   "[Take two](assets/ep3.m4a?v=2)",
+			want: `src="assets/ep3.m4a?v=2"`,
+		},
+		{
+			name: "emphasis in the label is characters in the attribute",
+			in:   "[**Ep** 3](assets/ep3.wav)",
+			want: `title="Ep 3"`,
+		},
+		{
+			name:  "a paper stays a link",
+			in:    "[minutes.pdf](assets/minutes.pdf)",
+			want:  `<a href="assets/minutes.pdf">minutes.pdf</a>`,
+			plain: true,
+		},
+		{
+			name:  "a page whose query mentions one stays a link",
+			in:    "[search](/find?q=.mp3)",
+			want:  `href="/find?q=.mp3"`,
+			plain: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Render(tc.in, "/posts/post.md")
+			if err != nil {
+				t.Fatalf("render: %v", err)
+			}
+			if !strings.Contains(got, tc.want) {
+				t.Errorf("want %q in:\n%s", tc.want, got)
+			}
+			if !tc.plain && strings.Contains(got, "<a href") {
+				t.Errorf("a player replaces its link, got:\n%s", got)
+			}
+		})
+	}
+}
+
+func TestMediaKind(t *testing.T) {
+	for href, want := range map[string]string{
+		"assets/track.mp3":     "audio",
+		"assets/track.MP3":     "audio",
+		"https://x/c.webm":     "video",
+		"assets/clip.mov#t=30": "video",
+		"assets/notes.pdf":     "",
+		"assets/page":          "",
+		"/find?q=.mp3":         "",
+	} {
+		if got := MediaKind(href); got != want {
+			t.Errorf("MediaKind(%q) = %q, want %q", href, got, want)
+		}
+	}
+}
