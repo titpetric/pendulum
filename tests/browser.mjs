@@ -104,6 +104,17 @@ function yes(name, condition, detail = "no") {
 
 // ── The server ────────────────────────────────────────────────────────────
 
+// The browser comes first, before anything is built or started: a machine
+// without it should hear so in one line, not watch a server it cannot drive
+// come up.
+const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright").catch(() => {
+	console.error(
+		"playwright is not installed here. Point PLAYWRIGHT at the module and CHROMIUM at the browser:\n" +
+			"  PLAYWRIGHT=/path/to/playwright/index.mjs CHROMIUM=/usr/lib/chromium/chromium node tests/browser.mjs",
+	);
+	process.exit(1);
+});
+
 // The binary sits beside the folder being edited, not in it: what the
 // listing shows is the document and nothing else.
 const temp = mkdtempSync(join(tmpdir(), "pendulum-check-"));
@@ -115,13 +126,23 @@ const binary = join(temp, "pendulum");
 execFileSync("go", ["build", "-o", binary, "./cmd/pendulum"], { cwd: root, stdio: "inherit" });
 
 // The server logs every request on stdout; only what it says on the way out
-// is worth the check's output.
-const server = spawn(binary, ["-addr", `127.0.0.1:${port}`, folder], { stdio: ["ignore", "pipe", "inherit"] });
+// is worth the check's output. It holds none of this process's own streams:
+// a server left behind would keep them open, and whatever ran the check
+// would wait on a pipe for a run that is already over.
+const server = spawn(binary, ["-addr", `127.0.0.1:${port}`, folder], { stdio: ["ignore", "pipe", "pipe"] });
 let said = "";
-server.stdout.on("data", (chunk) => {
-	said = String(chunk);
-});
+for (const stream of [server.stdout, server.stderr]) {
+	stream.on("data", (chunk) => {
+		said = String(chunk);
+	});
+}
 server.on("exit", (code) => code && console.error(`the server stopped: ${code}: ${said.trim()}`));
+// However this run ends - a failed check, a thrown error, a Ctrl-C - the
+// server goes with it.
+process.on("exit", () => server.kill("SIGKILL"));
+for (const signal of ["SIGINT", "SIGTERM"]) {
+	process.on(signal, () => process.exit(1));
+}
 
 async function waiting() {
 	for (let attempt = 0; attempt < 100; attempt += 1) {
@@ -140,8 +161,6 @@ async function waiting() {
 }
 
 // ── The checks ────────────────────────────────────────────────────────────
-
-const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
 
 let browser;
 try {

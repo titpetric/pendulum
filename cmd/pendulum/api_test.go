@@ -70,6 +70,14 @@ func TestAPIListReadStore(t *testing.T) {
 	if err != nil || string(written) != "written\n" {
 		t.Errorf("stored file: %q %v", written, err)
 	}
+
+	// A browser puts a text field through a multipart form as CRLF, whatever
+	// the author typed. What lands on disk is the document, not the wire.
+	post(t, server.URL+"/api/store/post/fresh.md", url.Values{"contents": {"one\r\ntwo\rthree\n"}}, &stored)
+	written, err = os.ReadFile(filepath.Join(root, "post", "fresh.md"))
+	if err != nil || string(written) != "one\ntwo\nthree\n" {
+		t.Errorf("line endings: %q %v", written, err)
+	}
 }
 
 func TestAPIPreview(t *testing.T) {

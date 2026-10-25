@@ -155,8 +155,15 @@ func (api *API) Read(file string) (ReadResponse, error) {
 	return response, nil
 }
 
+// lineEndings is what a browser does to a text field on its way into a
+// multipart form: every newline comes out as CRLF, whatever the author
+// typed. A document stored that way gains a carriage return on every line,
+// and the next commit is a diff of the whole file.
+var lineEndings = strings.NewReplacer("\r\n", "\n", "\r", "\n")
+
 func (api *API) Store(file, contents string) (StoreResponse, error) {
 	response := StoreResponse{Status: "ok"}
+	contents = lineEndings.Replace(contents)
 
 	full, err := api.Resolve(file)
 	if err != nil {

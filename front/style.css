@@ -224,6 +224,32 @@ button[data-primary]:hover { filter: brightness(1.08); color: var(--accent-ink);
 .preview h3 { font-size: 1.2rem; }
 .preview a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .preview img { max-width: 100%; height: auto; border-radius: var(--radius); }
+
+/* Where a picture sits rides on the anchor the editor's panel writes on its
+   address, so the preview lays it out the way the editor drew it and the
+   way a site publishing these files will. A picture that is a paragraph of
+   its own is a block with air around it. */
+.preview p > img:only-child:not([src*="#left"]):not([src*="#right"]):not([src*="#center"]) {
+	display: block;
+	margin: 1.3em 0;
+}
+.preview img[src*="#left"] {
+	float: left;
+	max-width: min(45%, 20rem);
+	margin: 0.4em 1.3em 1.3em 0;
+}
+.preview img[src*="#right"] {
+	float: right;
+	max-width: min(45%, 20rem);
+	margin: 0.4em 0 1.3em 1.3em;
+}
+.preview img[src*="#center"] { display: block; margin: 1.3em auto; }
+.preview h1, .preview h2, .preview h3, .preview pre, .preview table { clear: both; }
+
+@media (max-width: 30rem) {
+	.preview img[src*="#left"],
+	.preview img[src*="#right"] { float: none; max-width: 100%; margin: 1.3em 0; }
+}
 .preview blockquote {
 	margin: 1.2rem 0;
 	padding: 0.1rem 0 0.1rem 1rem;
