@@ -296,9 +296,8 @@ async function editing(file) {
 	source.value = document_.contents;
 
 	const editor = new MarkdownEditor(source, {
-		// No Preview button, and no `preview` for the editor to call: the
-		// pane beside it is always on and holds the server's render. The
-		// pilcrow switches the marker characters on the surface.
+		// The pane beside the surface holds the server's render, and the
+		// pilcrow switches the marker characters on the surface itself.
 		toolbar: [...TOOLBAR_FULL, "upload"],
 		uploads: {
 			endpoint: "/api/upload",
