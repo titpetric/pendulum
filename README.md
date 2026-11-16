@@ -33,7 +33,7 @@ The folder is also a bare argument, which is the shortest way to start: `pendulu
 
 ## Writing
 
-The editing surface is [mdedit](https://github.com/titpetric/mdedit): one surface that holds the markdown itself. Type `###` and the line reads at a heading's size from the third character on; a table draws as a table with editable cells, and an image draws the picture it points at. The pilcrow at the right of the toolbar shows or hides the marker characters, and the textarea the editor mounts over stays in the page, hidden, carrying the value for the form.
+The editing surface is [mdedit](https://github.com/titpetric/mdedit): one surface that holds the markdown itself. Type `###` and the line reads at a heading's size from the third character on; a table draws as a table with editable cells, and an image draws the picture it points at. A `---` block at the head of a file draws as an editable field table, the same fields the preview shows. The pilcrow at the right of the toolbar shows or hides the marker characters, and the textarea the editor mounts over stays in the page, hidden, carrying the value for the form.
 
 The pane beside it is the same document rendered by the server. The two show different things. The surface is the source, markers and all, in the characters a save writes. The pane is the page the folder publishes: goldmark, the conventions below, and a relative image resolved the way whatever publishes the folder resolves it.
 
