@@ -215,6 +215,10 @@ try {
 		"the preview renders the front matter as a table",
 		(await page.textContent(".preview table")).includes("Writing in the browser"),
 	);
+	yes(
+		"the editor draws the front matter as fields",
+		(await page.textContent(".mdedit__widget--frontmatter")).includes("Writing in the browser"),
+	);
 
 	// Typing.
 	await page.click(".mdedit__surface .mdedit-para");
