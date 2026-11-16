@@ -90,7 +90,7 @@ A relative image resolves against the document: beside it, in a folder named aft
 | `make docker-push`      | the two gates above, then the registry                  |
 | `make release`          | tests, browser checks, image, image check, push         |
 | `make release-binaries` | the release matrix, linux, macOS and windows            |
-| `make mdedit`           | refresh the vendored editor bundle                      |
+| `make mdedit`           | refresh the editor bundle in `front/ext/`               |
 
 `make release` is the whole of a release and nothing reaches the registry that has not passed what stands above it: the tests, the browser checks, the image built, and the image run and asked to serve a folder. The tag is `git describe` unless one is named:
 

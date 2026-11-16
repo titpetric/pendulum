@@ -74,8 +74,10 @@ release-binaries:
 	@find build -type f
 
 # Refresh the editor from a checkout of github.com/titpetric/mdedit.
+# Not front/vendor: a module zip omits /vendor/ paths, and go install builds one.
 mdedit:
-	cp $(MDEDIT)/dist/mdedit.min.js $(MDEDIT)/dist/mdedit.min.css front/vendor/mdedit/
+	mkdir -p front/ext/mdedit
+	cp $(MDEDIT)/dist/mdedit.min.js $(MDEDIT)/dist/mdedit.min.css front/ext/mdedit/
 
 clean:
 	rm -rf build

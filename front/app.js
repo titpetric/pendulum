@@ -1,10 +1,10 @@
 // Pendulum's frontend: a file listing and an editor, routed off the URL.
 //
-// The editing surface is mdedit (vendor/mdedit); what is here is the chrome
+// The editing surface is mdedit (ext/mdedit); what is here is the chrome
 // around it, the calls to the API, and the preview pane that renders through
 // the server.
 
-import { MarkdownEditor, TOOLBAR_FULL, highlightCode } from "/vendor/mdedit/mdedit.min.js";
+import { MarkdownEditor, TOOLBAR_FULL, highlightCode } from "/ext/mdedit/mdedit.min.js";
 
 const app = document.getElementById("app");
 
