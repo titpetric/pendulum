@@ -68,14 +68,12 @@ tasks:
       - docker run --rm ${{image}}:${{version}} -help 2>&1 | grep autosave >/dev/null
       - docker run --rm -d --name ${{binary}}-check -p ${{check_port}}:8080 -v "$PWD/tests/fixture:/app/contents" ${{image}}:${{version}}
       - |
+        port=${CHECK_PORT:-18099}
         status=0
-        for i in $(seq 1 50); do
-          curl -sf http://127.0.0.1:${{check_port}}/api/list/ >/dev/null && break
-          sleep 0.2
-        done
-        curl -sf http://127.0.0.1:${{check_port}}/api/list/ | grep "hello.md" >/dev/null || status=1
-        curl -sf http://127.0.0.1:${{check_port}}/ | grep "Pendulum" >/dev/null || status=1
-        docker rm -f ${{binary}}-check >/dev/null
+        curl -sf --retry 50 --retry-connrefused --retry-delay 0 http://127.0.0.1:$port/api/list/ >/dev/null || status=1
+        curl -sf http://127.0.0.1:$port/api/list/ | grep "hello.md" >/dev/null || status=1
+        curl -sf http://127.0.0.1:$port/ | grep "Pendulum" >/dev/null || status=1
+        docker rm -f ${BINARY:-pendulum}-check >/dev/null
         exit $status
       - echo "the image serves the folder it is given"
 
