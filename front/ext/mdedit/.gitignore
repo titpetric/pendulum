@@ -1,0 +1,5 @@
+# What the demo server stores while someone plays with it.
+/demo/data/uploads/
+
+# What a test run copies the demo folder into.
+/.test/

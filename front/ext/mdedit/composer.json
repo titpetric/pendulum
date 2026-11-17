@@ -1,0 +1,12 @@
+{
+	"name": "titpetric/mdedit",
+	"description": "A markdown editing surface over a textarea, shipped as a CSS and JS bundle.",
+	"type": "mdedit-asset",
+	"license": "MIT",
+	"homepage": "https://git.cdn.si/titpetric/mdedit",
+	"keywords": ["markdown", "editor", "textarea", "front-matter"],
+	"support": {
+		"issues": "https://git.cdn.si/titpetric/mdedit/issues",
+		"source": "https://git.cdn.si/titpetric/mdedit"
+	}
+}

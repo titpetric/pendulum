@@ -1,6 +1,5 @@
 BINARY  := pendulum
 LDFLAGS := -s -w
-MDEDIT  ?= ../mdedit
 
 # The image this repository publishes, and the tag a release carries. VERSION
 # defaults to the commit being built, so `make release` from a clean checkout
@@ -9,9 +8,9 @@ IMAGE    ?= titpetric/pendulum
 VERSION  ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 PLATFORMS ?= linux/amd64,linux/arm64
 
-.PHONY: all build test check run docker docker-test docker-push release release-binaries mdedit clean
+.PHONY: all deps build test check run docker docker-test docker-push release release-binaries clean
 
-all: test build
+all: deps test build
 
 build:
 	CGO_ENABLED=0 go build -trimpath -ldflags '$(LDFLAGS)' -o build/$(BINARY) ./cmd/pendulum
@@ -73,11 +72,9 @@ release-binaries:
 	done
 	@find build -type f
 
-# Refresh the editor from a checkout of github.com/titpetric/mdedit.
-# Not front/vendor: a module zip omits /vendor/ paths, and go install builds one.
-mdedit:
-	mkdir -p front/ext/mdedit
-	cp $(MDEDIT)/dist/mdedit.min.js $(MDEDIT)/dist/mdedit.min.css front/ext/mdedit/
+# Refresh the editor and the rest of the Composer dependencies.
+deps:
+	composer update --no-interaction
 
 clean:
 	rm -rf build

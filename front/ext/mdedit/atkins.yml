@@ -1,0 +1,76 @@
+# mdedit: a markdown editing surface over a textarea, shipped as a .css/.js
+# bundle. dist/ is committed - a project that copies it needs no toolchain -
+# so `bundle` is what keeps it in step with src/ and `check` is what proves
+# it, offline and without either tool.
+
+tasks:
+  default:
+    passthru: true
+    steps:
+      - task: fmt
+      - task: lint
+      - task: bundle
+      - task: check
+
+  test:
+    desc: "Drive the editor in a browser: seven suites over the demo server"
+    passthru: true
+    steps:
+      - node tests/run.mjs
+
+  bundle:
+    desc: "Rebuild dist/ from src/"
+    passthru: true
+    steps:
+      - task: tool
+      - esbuild src/index.js --bundle --format=esm --outfile=dist/mdedit.js
+      - esbuild src/index.js --bundle --format=esm --minify --outfile=dist/mdedit.min.js
+      - esbuild src/index.js --bundle --format=iife --global-name=mdedit --minify --outfile=dist/mdedit.global.js
+      - esbuild src/mdedit.css --bundle --outfile=dist/mdedit.css
+      - esbuild src/mdedit.css --bundle --minify --outfile=dist/mdedit.min.css
+      - find src -type f | sort | xargs sha256sum | sha256sum | cut -d' ' -f1 > dist/mdedit.stamp
+
+  tool:
+    internal: true
+    # esbuild is a Go program; the version is pinned here until the gotools
+    # image carries it.
+    if: $(! command -v esbuild >/dev/null 2>&1)
+    cmd: go install github.com/evanw/esbuild/cmd/esbuild@v0.28.2
+
+  check:
+    desc: "Prove the committed bundle still matches src/"
+    steps:
+      - |
+        have=$(cat dist/mdedit.stamp)
+        want=$(find src -type f | sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
+        test "$have" = "$want" || {
+          echo "the bundle is stale, run: atkins bundle"
+          exit 1
+        }
+
+  fmt:
+    desc: "Format the demo server"
+    passthru: true
+    steps:
+      - timeout -k 5 30 phpscript fmt ./...
+
+  lint:
+    desc: "Lint the demo server"
+    passthru: true
+    steps:
+      - timeout -k 5 30 phpscript lint ./...
+
+  demo:
+    desc: "Serve demo/data with the demo server (Ctrl-C stops it)"
+    passthru: true
+    steps:
+      - phpscript mdedit.php demo/data
+
+  deploy:
+    desc: "Deploy the README and docs to cdn.si"
+    vars:
+      stage: $(mktemp -d)
+    passthru: true
+    steps:
+      - rsync -a ./README.md ./docs ${{stage}}/
+      - rsync -aiP -e 'ssh -p 8022' ${{stage}}/ titpetric@cdn.si:/mdedit/

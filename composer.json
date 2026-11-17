@@ -1,0 +1,29 @@
+{
+  "name": "titpetric/pendulum",
+  "description": "A markdown folder served as a writing surface",
+  "type": "project",
+  "repositories": [
+    { "type": "vcs", "url": "https://git.cdn.si/titpetric/mdedit" }
+  ],
+  "require": {
+    "titpetric/mdedit": "dev-main",
+    "oomphinc/composer-installers-extender": "^2.0"
+  },
+  "config": {
+    "vendor-dir": "ext",
+    "allow-plugins": {
+      "composer/installers": true,
+      "oomphinc/composer-installers-extender": true
+    }
+  },
+  "scripts": {
+    "post-install-cmd": ["rm -rf front/ext/mdedit/.git"],
+    "post-update-cmd": ["rm -rf front/ext/mdedit/.git"]
+  },
+  "extra": {
+    "installer-types": ["mdedit-asset"],
+    "installer-paths": {
+      "front/ext/{$name}": ["type:mdedit-asset"]
+    }
+  }
+}

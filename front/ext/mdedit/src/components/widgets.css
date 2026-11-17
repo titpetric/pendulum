@@ -1,0 +1,69 @@
+/* The blocks drawn in place of their markdown lines. */
+.mdedit__widget {
+	margin: 0.4em 0;
+	border: 1px solid var(--mdedit-line);
+	border-radius: var(--mdedit-radius);
+	background: color-mix(in srgb, var(--mdedit-code) 45%, transparent);
+	overflow-x: auto;
+
+	& .mdedit__widget-bar {
+		position: sticky;
+		left: 0;
+		display: flex;
+		align-items: center;
+		gap: var(--mdedit-gap);
+		padding: 2px 2px 2px 0.6em;
+		border-bottom: 1px solid var(--mdedit-line);
+	}
+
+	& .mdedit__widget-name {
+		margin-right: auto;
+		color: var(--mdedit-ink-soft);
+		font-family: var(--mdedit-ui-font);
+		font-size: calc(var(--mdedit-ui-size) * 0.82);
+		letter-spacing: 0.04em;
+		text-transform: lowercase;
+	}
+
+	& .mdedit__widget-bar .mdedit__tool {
+		min-height: 22px;
+		min-width: 22px;
+		padding: 0 0.2rem;
+		font-size: 0.8em;
+	}
+
+	@media (pointer: coarse) {
+		& .mdedit__widget-bar .mdedit__tool {
+			min-height: 32px;
+			min-width: 32px;
+		}
+	}
+
+	& .mdedit__widget-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.95em;
+
+		& th,
+		& td {
+			padding: 0.35em 0.6em;
+			border: 1px solid var(--mdedit-line);
+			text-align: left;
+			vertical-align: top;
+		}
+
+		& th {
+			background: color-mix(in srgb, var(--mdedit-line) 40%, transparent);
+			font-weight: 700;
+		}
+
+		& [data-align="center"] { text-align: center; }
+		& [data-align="right"] { text-align: right; }
+
+		& th:focus,
+		& td:focus {
+			outline: 2px solid var(--mdedit-accent);
+			outline-offset: -2px;
+		}
+	}
+}

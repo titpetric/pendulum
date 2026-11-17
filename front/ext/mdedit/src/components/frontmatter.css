@@ -1,0 +1,62 @@
+/* The fields at the head of a document. */
+.mdedit__widget--frontmatter {
+	& .mdedit__frontmatter-key {
+		width: 32%;
+		font-weight: 650;
+	}
+
+	& .mdedit__frontmatter-child .mdedit__frontmatter-key {
+		padding-left: 2.2em;
+		font-weight: 400;
+	}
+
+	& .mdedit__frontmatter-group th {
+		background: color-mix(in srgb, var(--mdedit-line) 28%, transparent);
+		font-weight: 600;
+	}
+
+	& .mdedit__frontmatter-value {
+		white-space: pre-wrap;
+	}
+
+	& .mdedit__frontmatter-rich {
+		color: var(--mdedit-ink-soft);
+		font-style: italic;
+	}
+
+	& .mdedit__frontmatter-rich-row .mdedit__frontmatter-key {
+		color: var(--mdedit-ink-soft);
+	}
+
+	& .mdedit__frontmatter-source {
+		display: block;
+		width: 100%;
+		min-height: 6em;
+		box-sizing: border-box;
+		padding: 0.6em;
+		border: 0;
+		background: transparent;
+		color: inherit;
+		font-family: var(--mdedit-code-font);
+		font-size: 0.95em;
+		line-height: 1.45;
+		white-space: pre;
+		overflow: auto;
+		resize: vertical;
+		tab-size: 4;
+
+		&:focus {
+			outline: 2px solid var(--mdedit-accent);
+			outline-offset: -2px;
+		}
+	}
+
+	&[data-mode="source"] .mdedit__frontmatter-table {
+		display: none;
+	}
+
+	&[data-invalid] .mdedit__frontmatter-source {
+		outline: 2px solid var(--mdedit-accent);
+		outline-offset: -2px;
+	}
+}

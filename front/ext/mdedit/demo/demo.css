@@ -1,0 +1,65 @@
+/* The demo page around the editor: the component ships no page chrome, so
+   this is all host styling. */
+
+:root {
+	color-scheme: light dark;
+	--page-ink: #1d1811;
+	--page-paper: #faf6ef;
+	--page-soft: #6f6659;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--page-ink: #ece5d8;
+		--page-paper: #171310;
+		--page-soft: #a89e8d;
+	}
+}
+
+body {
+	margin: 0;
+	color: var(--page-ink);
+	background: var(--page-paper);
+	font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.page {
+	max-width: 46rem;
+	margin: 0 auto;
+	padding: 2rem 1rem 4rem;
+}
+
+.page--wide { max-width: 60rem; }
+
+h1 { font-size: 1.6rem; margin: 0 0 0.5rem; }
+.lede, .crumbs { color: var(--page-soft); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+.files { list-style: none; margin: 1.5rem 0; padding: 0; }
+.files li { display: flex; gap: 0.75rem; align-items: baseline; padding: 0.4rem 0; border-bottom: 1px solid color-mix(in srgb, var(--page-soft) 30%, transparent); }
+.files span { color: var(--page-soft); font-size: 0.8rem; }
+
+.new { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.new label { color: var(--page-soft); }
+
+.actions { display: flex; gap: 0.75rem; align-items: center; margin-top: 1rem; }
+#status { color: var(--page-soft); font-size: 0.85rem; }
+
+/* Theming the component: it reads its own --mdedit-* variables and nothing
+   else, so a page maps them onto whatever it already has. */
+.mdedit {
+	--mdedit-paper: var(--page-paper);
+	--mdedit-ink: var(--page-ink);
+	--mdedit-ink-soft: var(--page-soft);
+	--mdedit-accent: #2f6f4f;
+	--mdedit-accent-text: #275c42;
+	--mdedit-accent-ink: #f7fbf8;
+}
+
+@media (prefers-color-scheme: dark) {
+	.mdedit {
+		--mdedit-accent: #5aa37c;
+		--mdedit-accent-text: #7fc49b;
+		--mdedit-accent-ink: #0d1a13;
+	}
+}
