@@ -362,6 +362,18 @@
 .mdedit__surface > * {
   margin-left: var(--mdedit-rail);
 }
+.mdedit--code .mdedit__surface {
+  font-family: var(--mdedit-code-font);
+  background: var(--mdedit-code);
+  border-radius: var(--mdedit-radius);
+}
+.mdedit--code .mdedit-codeline {
+  font-size: 1em;
+  padding-left: 0;
+  padding-right: 0;
+  background: transparent;
+  box-shadow: none;
+}
 .mdedit-h1,
 .mdedit-h2,
 .mdedit-h3,

@@ -476,7 +476,7 @@ export class Surface extends Source {
 	// the run draws once the writer moves on. The bar on a widget is the way
 	// back into its markdown.
 	decorate() {
-		if (this.drawing || this.composing || this.frontmatterSource(document.activeElement)) {
+		if (this.editor.code || this.drawing || this.composing || this.frontmatterSource(document.activeElement)) {
 			return;
 		}
 
@@ -556,6 +556,19 @@ export class Surface extends Source {
 	// paint tokenises one line, draws it, and answers the context for the
 	// line below.
 	paint(element, line, context) {
+		// Code mode reads every line as source of one language. Nothing here
+		// is markdown: no fence opens, no table draws, and the characters
+		// come back through the same highlighter a fence uses.
+		if (this.editor.code) {
+			element.className = `${this.prefix}__line ${this.prefix}-codeline`;
+			delete element.dataset.in;
+			element.replaceChildren(...this.nodes([{ code: line, language: this.editor.language }]));
+			if (element.textContent === "") {
+				element.replaceChildren(document.createElement("br"));
+			}
+			return null;
+		}
+
 		const token = tokenise(line, context);
 
 		// A line the host draws its own block for is all marker, like an
@@ -1533,12 +1546,13 @@ export class Surface extends Source {
 		if (event.key === "Enter") {
 			event.preventDefault();
 			const { start, end } = this.selection;
-			if (!event.shiftKey && start === end && (this.fenceEnter(start) || this.listEnter(start))) {
+			if (!this.editor.code && !event.shiftKey && start === end && (this.fenceEnter(start) || this.listEnter(start))) {
 				return;
 			}
 
 			// Shift-Enter is markdown's hard break: two spaces and a newline.
-			const text = event.shiftKey ? "  \n" : "\n";
+			// Code has one newline, and the trailing spaces would be content.
+			const text = event.shiftKey && !this.editor.code ? "  \n" : "\n";
 			this.replace(start, end, text, start + text.length);
 			return;
 		}
@@ -2141,6 +2155,10 @@ export class Surface extends Source {
 	// in, so one attribute answers it; what the foot says is the
 	// stylesheet's, and generated content lands in no document.
 	markOpenFence() {
+		if (this.editor.code) {
+			return;
+		}
+
 		const last = this.element.lastElementChild;
 		this.element.toggleAttribute("data-open-fence", Boolean(last && "in" in last.dataset));
 	}

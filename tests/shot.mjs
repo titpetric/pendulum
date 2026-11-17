@@ -3,9 +3,9 @@
 //
 //	PLAYWRIGHT=/path/to/playwright/index.mjs CHROMIUM=/usr/lib/chromium/chromium node tests/shot.mjs
 //
-// It writes images/pendulum.png and images/pendulum-search.png, serving a
-// folder it writes itself, so the shot is reproducible and carries nobody's
-// own notes.
+// It writes images/pendulum.png, images/pendulum-search.png and
+// images/pendulum-code.png, serving a folder it writes itself, so the shot
+// is reproducible and carries nobody's own notes.
 
 import { execFileSync, spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -72,6 +72,32 @@ writeFileSync(join(folder, "posts", "salt-water.md"), POST);
 writeFileSync(join(folder, "posts", "guanciale.md"), "# Guanciale\n\nRender it slowly; the fat is the sauce.\n");
 writeFileSync(join(folder, "posts", "weeknight-pasta.md"), "# Weeknight pasta\n\nTwelve dinners, four sauces.\n");
 writeFileSync(join(folder, "README.md"), "# Kitchen notes\n\nWhat the folder holds.\n");
+writeFileSync(
+	join(folder, "posts", "publish.yaml"),
+	`# The pipeline that publishes the folder
+name: publish
+on:
+  push:
+    branches: [main]
+
+vars:
+  site: https://cdn.si/titpetric/pendulum/
+  cache: 300
+
+tasks:
+  screenshots:
+    desc: "Take the images the readme leads with"
+    steps:
+      - node tests/shot.mjs
+      - rsync -a ./images titpetric@cdn.si:/pendulum/
+
+  publish:
+    desc: "Copy the readme and its images"
+    steps:
+      - rsync -a ./README.md ./images titpetric@cdn.si:/pendulum/
+      - echo "published at https://cdn.si/titpetric/pendulum/"
+`,
+);
 mkdirSync(join(folder, "drafts"), { recursive: true });
 
 const binary = join(temp, "pendulum");
@@ -115,7 +141,14 @@ await page.locator("[data-find]").fill("salt");
 await page.waitForTimeout(800);
 await page.screenshot({ path: join(root, "images", "pendulum-search.png") });
 
+// A file that is not markdown: the whole screen is source, coloured by the
+// extension, with no preview to fold away.
+await page.goto(`${origin}/edit/posts/publish.yaml`, { waitUntil: "networkidle" });
+await page.waitForSelector(".mdedit--code");
+await page.waitForTimeout(600);
+await page.screenshot({ path: join(root, "images", "pendulum-code.png") });
+
 await browser.close();
 server.kill("SIGTERM");
 rmSync(temp, { recursive: true, force: true });
-console.log("wrote images/pendulum.png and images/pendulum-search.png");
+console.log("wrote images/pendulum.png, images/pendulum-search.png and images/pendulum-code.png");

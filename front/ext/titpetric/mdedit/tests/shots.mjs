@@ -269,6 +269,38 @@ const SCENES = {
 		await page.waitForSelector(".mdedit__queue");
 		await shot("upload-queue", ".mdedit__queue");
 	},
+	// Code mode: a whole file as one language, in the code face with no
+	// markdown construct drawn.
+	"code-mode": async () => {
+		await open("welcome.md");
+		await page.evaluate(async () => {
+			const { MarkdownEditor } = await import("/assets/dist/mdedit.js");
+			window.editor.destroy();
+			window.editor = new MarkdownEditor(document.querySelector("textarea[data-markdown]"), {
+				code: true,
+				language: "yaml",
+			});
+			window.editor.value =
+				"# The pipeline that publishes this site\n" +
+				"name: pendulum\n" +
+				"on:\n" +
+				"  push:\n" +
+				"    branches: [main]\n" +
+				"\n" +
+				"vars:\n" +
+				"  image: titpetric/pendulum\n" +
+				"  tags: latest\n" +
+				"\n" +
+				"tasks:\n" +
+				"  deploy:\n" +
+				'    desc: "Publish the readme and screenshots"\n' +
+				"    steps:\n" +
+				"      - rsync -a ./images titpetric@cdn.si:/pendulum/\n" +
+				'      - echo "published at https://cdn.si/titpetric/pendulum/"\n';
+		});
+		await page.waitForSelector(".mdedit--code");
+		await shot("code-mode");
+	},
 };
 
 const asked = process.argv.slice(2);

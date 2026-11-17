@@ -219,3 +219,58 @@ export function highlightCode(line, prefix, language) {
 
 	return out + escapeHTML(line.slice(last));
 }
+
+// The words that name one language and no other. A word every language
+// spells - `if`, `return` - decides nothing here, so the lists hold the ones
+// that do: `foreach` is php, `defer` go, `elif` python or bash.
+const SIGNATURES = {
+	bash: ["#!/bin/", "export ", "local ", "then", " fi", "done", "esac", "echo "],
+	css: ["@media", "margin", "padding", "display:", "font-size", "border:", "background"],
+	go: ["package ", "func ", "defer ", " chan ", "range ", "goroutine", " nil", "struct {"],
+	html: ["<!doctype", "<html", "<div", "<span", "</"],
+	js: ["function ", "const ", " let ", "console.", "require(", "=>", "document.", "window."],
+	php: ["<?php", "foreach", "echo ", "public ", "private ", "protected ", "namespace ", "instanceof", "->"],
+	python: ["def ", "elif", "import ", "None", "True", "False", "print(", "self."],
+	sql: ["select ", "from ", "where ", "join ", "insert ", "update ", "create table", "group by", "order by"],
+	ts: ["interface ", "implements ", "enum ", "readonly ", "type "],
+};
+
+// count answers how many times one signature stands in a lower case text.
+function count(text, word) {
+	const left = /^[a-z]/i.test(word) ? "\\b" : "";
+	const right = /[a-z0-9]$/i.test(word) ? "\\b" : "";
+	const pattern = new RegExp(`${left}${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}${right}`, "g");
+
+	return (text.match(pattern) ?? []).length;
+}
+
+// detectLanguage answers the language a source is written in, or "" where no
+// signature stands in it. Each language scores its own signatures; the one
+// with the most wins, and a shape json or yaml reads by settles a tie.
+export function detectLanguage(source) {
+	const text = String(source ?? "").toLowerCase();
+	let best = "";
+	let top = 0;
+
+	for (const [language, words] of Object.entries(SIGNATURES)) {
+		const score = words.reduce((total, word) => total + count(text, word), 0);
+		if (score > top) {
+			top = score;
+			best = language;
+		}
+	}
+
+	if (top > 0) {
+		return best;
+	}
+
+	const trimmed = text.trim();
+	if (/^[{\[]/.test(trimmed) && /"[^"]+"\s*:/.test(trimmed)) {
+		return "json";
+	}
+	if (/^[\w.-]+\s*:/m.test(trimmed)) {
+		return "yaml";
+	}
+
+	return "";
+}

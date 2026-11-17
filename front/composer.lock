@@ -12,7 +12,7 @@
             "source": {
                 "type": "git",
                 "url": "https://git.cdn.si/titpetric/mdedit",
-                "reference": "50c362a73c2234397978e8dae36d59a67cf7b446"
+                "reference": "6943b8d88d513e61affb750f382aebabb4042116"
             },
             "default-branch": true,
             "type": "mdedit-asset",
@@ -31,7 +31,7 @@
                 "issues": "https://git.cdn.si/titpetric/mdedit/issues",
                 "source": "https://git.cdn.si/titpetric/mdedit"
             },
-            "time": "2026-11-17T10:38:46+00:00"
+            "time": "2026-11-17T12:44:53+00:00"
         }
     ],
     "packages-dev": [],

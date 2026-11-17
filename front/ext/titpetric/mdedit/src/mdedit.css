@@ -314,6 +314,23 @@
    drawn table takes the rail too, so the column has one edge. */
 .mdedit__surface > * { margin-left: var(--mdedit-rail); }
 
+/* Code mode is one block of source: no bar, no prose face, no per-line
+   block padding. The colour comes from the highlighter, the face from the
+   code font the theme already carries. */
+.mdedit--code .mdedit__surface {
+	font-family: var(--mdedit-code-font);
+	background: var(--mdedit-code);
+	border-radius: var(--mdedit-radius);
+}
+
+.mdedit--code .mdedit-codeline {
+	font-size: 1em;
+	padding-left: 0;
+	padding-right: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
 /* ── What a line is ───────────────────────────────────────────────────── */
 
 /* Headings take the ink, not the accent: a page of green headings reads as

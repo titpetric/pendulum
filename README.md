@@ -35,13 +35,19 @@ The folder is also a bare argument, which is the shortest way to start: `pendulu
 
 The editing surface is [mdedit](https://github.com/titpetric/mdedit): one surface that holds the markdown itself. Type `###` and the line reads at a heading's size from the third character on; a table draws as a table with editable cells, and an image draws the picture it points at. A `---` block at the head of a file draws as an editable field table, the same fields the preview shows. The pilcrow at the right of the toolbar shows or hides the marker characters, and the textarea the editor mounts over stays in the page, hidden, carrying the value for the form.
 
-The pane beside it is the same document rendered by the server. The two show different things. The surface is the source, markers and all, in the characters a save writes. The pane is the page the folder publishes: goldmark, the conventions below, and a relative image resolved the way whatever publishes the folder resolves it.
+For a markdown file the pane beside it is the same document rendered by the server. The two show different things. The surface is the source, markers and all, in the characters a save writes. The pane is the page the folder publishes: goldmark, the conventions below, and a relative image resolved the way whatever publishes the folder resolves it.
 
 Ctrl-S saves. A save writes the file, then `git add` and `git commit` where the folder is a repository and git has an identity configured. Everything stays on the machine the editor runs on.
 
 `-autosave 2m` saves a document that has been left alone for that long, and saves it when the tab goes away with something unsaved. It is off by default: every save commits, and an unprompted commit carries no message anyone wrote.
 
 The Preview button folds the pane away, and the handle between the two panes moves the split; the arrow keys move it once it has the focus. Both are remembered for the next document.
+
+## Other files
+
+A file that is not markdown opens as source. The editor is one monospaced surface, coloured by the extension, and the preview pane is not there at all: YAML, JSON, a shell script, a Go, PHP or Python file, `.gitignore` and anything else in the folder edit the way a text editor edits them. An extension the editor does not know is coloured by whichever language its keywords name. Markdown keeps the rich editor: `#` is a heading, a pipe row is a table and a `---` block is front matter.
+
+![A YAML pipeline open as source: the whole screen is one monospaced, highlighted file, with Save and Close and no preview](https://cdn.si/titpetric/pendulum/images/pendulum-code.png?v=d265c7d7)
 
 ## The folder
 

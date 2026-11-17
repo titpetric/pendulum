@@ -100,8 +100,13 @@ It runs what the browser suites run: the demo server over a copy of `demo/data` 
 | `heading.png`, `links.png`           | the level chooser and the links table                             |
 | `code.png`, `code-menu.png`          | three code blocks with their fences hidden, and the menu over one |
 | `frontmatter.png`                    | the fields at the head of a document                              |
+| `code-mode.png`                      | a YAML pipeline in code mode, no bar and no markdown              |
 
 `docs/example.md` is the fixture for the first two, so a change to it means taking both again. A change to the bar means taking all of them, since every image holds it. Playwright and Chromium are not dependencies of this project. A machine with Docker can use an image holding Node, Chromium and phpscript, set `PLAYWRIGHT` and `CHROMIUM` for it as the Tests section says, and copy the repository in with `docker cp` when a bind mount does not reach the working tree.
+
+## Deployment
+
+`atkins deploy` copies `README.md` and `docs/` to `https://cdn.si/titpetric/mdedit/`. The README there reads its screenshots from the same tree, so the relative `docs/*.png` paths resolve against that URL.
 
 ## Prose
 

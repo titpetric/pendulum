@@ -20,7 +20,7 @@ export { highlight, escapeHTML } from "./highlight.js";
 // The colourer a fenced block is painted with. A host that renders the
 // document beside the editor paints it with this, so both halves of a split
 // screen read one language the same way.
-export { highlightCode } from "./code.js";
+export { highlightCode, detectLanguage } from "./code.js";
 export { renderInline, alignImage, imageAlign, imageMarkdown } from "./inline.js";
 export { defaultTools, TOOLBAR_FULL, TOOLBAR_INLINE } from "./tools.js";
 

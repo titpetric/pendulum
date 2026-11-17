@@ -11,6 +11,7 @@
 // every edit. It keeps its name, its value and its form, so the no-JS
 // fallback and the server-side validation go on working unchanged.
 
+import { detectLanguage } from "./code.js";
 import { LevelMenu } from "./heading.js";
 import { CodeMenu } from "./language.js";
 import { ImagePanel } from "./images.js";
@@ -137,14 +138,18 @@ export class MarkdownEditor {
 		this.listeners = new Map();
 		// Set by Escape, read by the next Tab: see keydown().
 		this.releasingTab = false;
+		// Code mode reads every line as source of one language: no markdown
+		// constructs, no bar, no widgets.
+		this.code = options.code === true;
+		this.language = this.code ? options.language || detectLanguage(field.value) : "";
 		// Whether the marker characters show. A document opens with them on.
-		this.marks = options.marks !== false;
+		this.marks = this.code ? false : options.marks !== false;
 		// Whether a leading --- block draws as fields.
-		this.frontmatter = options.frontmatter !== false;
+		this.frontmatter = this.code ? false : options.frontmatter !== false;
 		// One controller for every listener this editor adds, so destroy()
 		// is a single abort and no list of removals has to stay in step.
 		this.aborter = new AbortController();
-		this.uploads = options.uploads ? new Uploads(this, options.uploads) : null;
+		this.uploads = this.code ? null : options.uploads ? new Uploads(this, options.uploads) : null;
 		this.uploadPanel = this.uploads ? new UploadPanel(this) : null;
 		this.grid = new TableGrid(this);
 		this.imagePanel = new ImagePanel(this);
@@ -198,14 +203,14 @@ export class MarkdownEditor {
 		const name = (part) => `${this.prefix}__${part}`;
 
 		this.root = document.createElement("div");
-		this.root.className = this.prefix;
+		this.root.className = this.code ? `${this.prefix} ${this.prefix}--code` : this.prefix;
 		field.parentNode.insertBefore(this.root, field);
 
 		this.surface = document.createElement("div");
 		this.surface.id = `${field.id}-surface`;
 		this.surface.className = name("surface");
 		this.surface.contentEditable = "true";
-		this.surface.spellcheck = this.options.spellcheck !== false;
+		this.surface.spellcheck = this.options.spellcheck ?? !this.code;
 		this.surface.setAttribute("role", "textbox");
 		this.surface.setAttribute("aria-multiline", "true");
 		this.surface.setAttribute("aria-label", field.getAttribute("aria-label") ?? this.texts.document);
@@ -290,7 +295,7 @@ export class MarkdownEditor {
 			return;
 		}
 
-		if (this.options.shortcuts !== false) {
+		if (!this.code && this.options.shortcuts !== false) {
 			const tool = this.shortcut(event);
 			if (tool) {
 				event.preventDefault();
@@ -342,7 +347,8 @@ export class MarkdownEditor {
 		// shows neither gesture on its face. A project that names its own
 		// toolbar gets the keys it named.
 		const toolbar =
-			this.options.toolbar ?? (this.uploads ? [...TOOLBAR_FULL, "upload"] : TOOLBAR_FULL);
+			this.options.toolbar ??
+			(this.code ? false : this.uploads ? [...TOOLBAR_FULL, "upload"] : TOOLBAR_FULL);
 		if (toolbar === false) {
 			this.marksButton = null;
 			return null;

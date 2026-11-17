@@ -121,6 +121,10 @@ const temp = mkdtempSync(join(tmpdir(), "pendulum-check-"));
 const folder = join(temp, "contents");
 mkdirSync(join(folder, "posts"), { recursive: true });
 writeFileSync(join(folder, "posts", "post.md"), POST);
+writeFileSync(
+	join(folder, "posts", "publish.yaml"),
+	'# deploy\nname: pendulum\nport: 8080\ntags:\n  - "cdn.si"\n',
+);
 
 const binary = join(temp, "pendulum");
 execFileSync("go", ["build", "-o", binary, "./cmd/pendulum"], { cwd: root, stdio: "inherit" });
@@ -318,6 +322,38 @@ try {
 	await page.click("[data-close]");
 	await page.waitForSelector(".files");
 	ok("close returns to the listing");
+
+	// A file that is not markdown opens as source: one column, no preview,
+	// no bar, in the code face and coloured by the extension.
+	await page.goto(`${origin}/edit/posts/publish.yaml`, { waitUntil: "networkidle" });
+	await page.waitForSelector(".mdedit--code");
+	const sourceView = await page.evaluate(() => {
+		const root = document.querySelector(".mdedit");
+
+		return {
+			code: root.classList.contains("mdedit--code"),
+			bar: root.querySelectorAll(".mdedit__bar").length,
+			preview: document.querySelectorAll(".pane--preview").length,
+			split: document.querySelectorAll(".split").length,
+			button: document.querySelectorAll("[data-preview]").length,
+			mono: /mono/i.test(getComputedStyle(root.querySelector(".mdedit__surface")).fontFamily),
+			comments: root.querySelectorAll(".mdedit-c-comment").length,
+			numbers: root.querySelectorAll(".mdedit-c-number").length,
+			strings: root.querySelectorAll(".mdedit-c-string").length,
+		};
+	});
+	yes("a yaml file opens in code mode", sourceView.code, JSON.stringify(sourceView));
+	yes("code mode has no bar, preview or split", sourceView.bar === 0 && sourceView.preview === 0 && sourceView.split === 0 && sourceView.button === 0, JSON.stringify(sourceView));
+	yes("code mode uses the monospaced face", sourceView.mono, JSON.stringify(sourceView));
+	yes("the extension colours the file", sourceView.comments > 0 && sourceView.numbers > 0 && sourceView.strings > 0, JSON.stringify(sourceView));
+
+	await page.locator(".mdedit__surface").click();
+	await page.keyboard.press("Control+End");
+	await page.keyboard.type("live: true\n");
+	await page.keyboard.press("Control+s");
+	await page.waitForFunction(() => document.querySelector(".status")?.textContent.includes("saved"));
+	const savedYaml = readFileSync(join(folder, "posts", "publish.yaml"), "utf8");
+	yes("a code file saves what was typed", savedYaml.endsWith("live: true\n"), JSON.stringify(savedYaml));
 
 	yes("the page logged nothing", noise.length === 0, noise.join(" | "));
 

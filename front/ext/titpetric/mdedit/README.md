@@ -62,6 +62,7 @@ Install the package into `ext/`, not `vendor/`: a Go module zip omits `vendor/`.
 ## What it does
 
 - **The surface.** Every construct keeps the characters the writer types; the pilcrow hides them and the line reads as it publishes. [The surface](#the-surface)
+- **Code mode.** `code: true` edits a whole file as one language: monospaced, highlighted, with no markdown construct and no bar. [Code mode](#code-mode)
 - **Headings.** Typed with hashes, sized where they stand, with a level label from `H1` to `H6` and a chooser that moves the level. [Headings](#headings)
 - **Shortcuts.** Ctrl+B, Ctrl+I, Ctrl+Shift+X and Ctrl+Shift+S decorate the selection, and a second press takes it off.
 - **Lists and quotes.** Enter continues a list at its depth; a quote keeps its markers and reads in italics. [Lists and quotes](#lists-and-quotes)
@@ -90,6 +91,20 @@ The pilcrow at the right of the bar decides whether the marker characters show.
 `editor.toggleMarks(on)` does it from script, the `marks` event reports it, and `marks: false` opens with the markers hidden.
 
 Prose takes `--mdedit-prose-font` and code takes `--mdedit-code-font`. One surface draws both, so a document reads in a prose face while its code stays monospace.
+
+## Code mode
+
+A host that edits more than markdown passes `code: true` and the language the file is written in:
+
+```js
+new MarkdownEditor(field, { code: true, language: "yaml" });
+```
+
+Every line is read as source of that language: the characters stay exactly what the writer typed, the surface uses `--mdedit-code-font`, and `highlightCode` colours comments, strings, numbers and words. No markdown is recognised. A `#` line is a comment, a pipe row stays a row and a `---` block stays three dashes. There is no bar, no pilcrow, no front matter and no upload. Ctrl+B and the other markdown shortcuts are off, Enter writes one newline, and the hidden textarea goes on carrying the value for the form.
+
+With no `language` the editor scores each language's keywords over the file and picks the one with the most, so a file holding `foreach` and `echo` reads as php and one holding `package` and `func` reads as go. A json or yaml shape settles a file that names no keyword.
+
+![A YAML pipeline in code mode: monospaced, comments, strings and numbers coloured, with no bar and no markdown drawn](docs/code-mode.png)
 
 ## Headings
 

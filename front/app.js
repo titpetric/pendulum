@@ -261,26 +261,74 @@ function parent(folder) {
 
 // ── The editor ────────────────────────────────────────────────────────────
 
+// The extensions that open in the rich editor. Everything else is source.
+const RICH = new Set(["md", "markdown", "mdx"]);
+
+// extensionOf answers the extension a file name ends in, lower case. A
+// dotfile is its whole name, since `.gitignore` carries no extension.
+function extensionOf(file) {
+	const base = file.split("/").pop() ?? "";
+	const at = base.lastIndexOf(".");
+	return (at > 0 ? base.slice(at + 1) : base).toLowerCase();
+}
+
+// CODE_LANGUAGES is what the code editor colours by. An extension not here
+// leaves the choice to the editor's keyword detection.
+const CODE_LANGUAGES = {
+	yml: "yaml",
+	yaml: "yaml",
+	json: "json",
+	toml: "toml",
+	ini: "bash",
+	conf: "bash",
+	".env": "bash",
+	".gitignore": "bash",
+	dockerfile: "bash",
+	makefile: "bash",
+	sh: "bash",
+	bash: "bash",
+	zsh: "bash",
+	js: "js",
+	mjs: "js",
+	cjs: "js",
+	ts: "ts",
+	css: "css",
+	scss: "css",
+	html: "html",
+	htm: "html",
+	go: "go",
+	php: "php",
+	py: "python",
+	sql: "sql",
+};
+
 async function editing(file) {
+	const rich = RICH.has(extensionOf(file));
+
 	app.innerHTML = bar(file, `
 		<span class="status" role="status"></span>
-		<button data-preview aria-pressed="true">Preview</button>
+		${rich ? `<button data-preview aria-pressed="true">Preview</button>` : ""}
 		<button data-save data-primary>Save</button>
 		<button data-close>Close</button>`);
 
 	const screen = document.createElement("div");
 	screen.className = "editor";
+	screen.dataset.panes = rich ? "both" : "source";
 	screen.innerHTML = `
-		<div class="pane pane--source"><textarea id="source"></textarea></div>
-		<div class="split" role="separator" aria-orientation="vertical" aria-label="Resize the preview" tabindex="0"></div>
-		<div class="pane pane--preview"><article class="preview"></article></div>`;
+		<div class="pane pane--source"><textarea id="source"></textarea></div>` +
+		(rich
+			? `<div class="split" role="separator" aria-orientation="vertical" aria-label="Resize the preview" tabindex="0"></div>
+		<div class="pane pane--preview"><article class="preview"></article></div>`
+			: "");
 	app.appendChild(screen);
 
 	// The surface draws the pictures the document points at, and a relative
 	// address in it has to answer the same file the published page answers.
 	// The base is the document's own folder under /contents, the path the
 	// server rewrites a preview image to.
-	rebase(`/contents${file.replace(/\.[^./]*$/, "")}/`);
+	if (rich) {
+		rebase(`/contents${file.replace(/\.[^./]*$/, "")}/`);
+	}
 
 	const status = app.querySelector(".status");
 	const article = screen.querySelector(".preview");
@@ -290,25 +338,34 @@ async function editing(file) {
 	try {
 		document_ = await api.read(file);
 	} catch (err) {
-		article.innerHTML = fail(err.message);
+		status.textContent = err.message;
+		status.dataset.state = "error";
 	}
 
 	source.value = document_.contents;
 
-	const editor = new MarkdownEditor(source, {
-		// The pane beside the surface holds the server's render, and the
-		// pilcrow switches the marker characters on the surface itself.
-		toolbar: [...TOOLBAR_FULL, "upload"],
-		uploads: {
-			endpoint: "/api/upload",
-			field: "file",
-			// The server stores beside the document, so the request
-			// carries which document the paste landed in.
-			params: () => ({ path: file }),
-			accept: ["image/"],
-			maxBytes: 16 * 1024 * 1024,
-		},
-	});
+	const editor = new MarkdownEditor(
+		source,
+		rich
+			? {
+					// The pane beside the surface holds the server's render, and the
+					// pilcrow switches the marker characters on the surface itself.
+					toolbar: [...TOOLBAR_FULL, "upload"],
+					uploads: {
+						endpoint: "/api/upload",
+						field: "file",
+						// The server stores beside the document, so the request
+						// carries which document the paste landed in.
+						params: () => ({ path: file }),
+						accept: ["image/"],
+						maxBytes: 16 * 1024 * 1024,
+					},
+				}
+			: {
+					code: true,
+					language: CODE_LANGUAGES[extensionOf(file)] ?? "",
+				},
+	);
 
 	let saved = editor.value;
 	let timer = null;
@@ -320,6 +377,10 @@ async function editing(file) {
 	}
 
 	async function render() {
+		if (!article) {
+			return;
+		}
+
 		try {
 			const answer = await api.preview(editor.value, file);
 			article.innerHTML = answer.html;
@@ -358,8 +419,10 @@ async function editing(file) {
 
 	editor.on("change", () => {
 		say(editor.value === saved ? "" : "unsaved");
-		clearTimeout(timer);
-		timer = setTimeout(render, 250);
+		if (rich) {
+			clearTimeout(timer);
+			timer = setTimeout(render, 250);
+		}
 		waitThenSave();
 	});
 	editor.on("upload", ({ state, file: upload }) => {
@@ -371,54 +434,57 @@ async function editing(file) {
 
 	// The preview pane folds away, and the split between the two moves. Both
 	// are remembered, so the width a writer sets is the width they get back.
-	const splitter = screen.querySelector(".split");
-	const button = app.querySelector("[data-preview]");
+	// A code file has neither: the source holds the whole screen.
+	if (rich) {
+		const splitter = screen.querySelector(".split");
+		const button = app.querySelector("[data-preview]");
 
-	function lay(showing, share) {
-		screen.dataset.panes = showing ? "both" : "source";
-		button.setAttribute("aria-pressed", String(showing));
-		screen.style.setProperty("--split", `${share}fr`);
-		localStorage.setItem("pendulum.preview", showing ? "on" : "off");
-		localStorage.setItem("pendulum.split", String(share));
-	}
-
-	let share = Number(localStorage.getItem("pendulum.split"));
-	if (!Number.isFinite(share) || share <= 0) {
-		share = 1;
-	}
-	lay(localStorage.getItem("pendulum.preview") !== "off", share);
-
-	button.addEventListener("click", () => lay(screen.dataset.panes === "source", share));
-
-	const drag = (clientX) => {
-		const box = screen.getBoundingClientRect();
-		const left = Math.min(Math.max(clientX - box.left, 180), box.width - 180);
-		share = (box.width - left) / left;
-		lay(true, share);
-	};
-
-	splitter.addEventListener("pointerdown", (event) => {
-		event.preventDefault();
-		splitter.setPointerCapture(event.pointerId);
-		const move = (moving) => drag(moving.clientX);
-		const stop = () => {
-			splitter.removeEventListener("pointermove", move);
-			splitter.removeEventListener("pointerup", stop);
+		const lay = (showing, share) => {
+			screen.dataset.panes = showing ? "both" : "source";
+			button.setAttribute("aria-pressed", String(showing));
+			screen.style.setProperty("--split", `${share}fr`);
+			localStorage.setItem("pendulum.preview", showing ? "on" : "off");
+			localStorage.setItem("pendulum.split", String(share));
 		};
-		splitter.addEventListener("pointermove", move);
-		splitter.addEventListener("pointerup", stop);
-	});
 
-	// The keyboard moves it too, in steps a reader can follow.
-	splitter.addEventListener("keydown", (event) => {
-		const step = { ArrowLeft: 1.1, ArrowRight: 1 / 1.1 }[event.key];
-		if (!step) {
-			return;
+		let share = Number(localStorage.getItem("pendulum.split"));
+		if (!Number.isFinite(share) || share <= 0) {
+			share = 1;
 		}
-		event.preventDefault();
-		share = Math.min(Math.max(share * step, 0.2), 5);
-		lay(true, share);
-	});
+		lay(localStorage.getItem("pendulum.preview") !== "off", share);
+
+		button.addEventListener("click", () => lay(screen.dataset.panes === "source", share));
+
+		const drag = (clientX) => {
+			const box = screen.getBoundingClientRect();
+			const left = Math.min(Math.max(clientX - box.left, 180), box.width - 180);
+			share = (box.width - left) / left;
+			lay(true, share);
+		};
+
+		splitter.addEventListener("pointerdown", (event) => {
+			event.preventDefault();
+			splitter.setPointerCapture(event.pointerId);
+			const move = (moving) => drag(moving.clientX);
+			const stop = () => {
+				splitter.removeEventListener("pointermove", move);
+				splitter.removeEventListener("pointerup", stop);
+			};
+			splitter.addEventListener("pointermove", move);
+			splitter.addEventListener("pointerup", stop);
+		});
+
+		// The keyboard moves it too, in steps a reader can follow.
+		splitter.addEventListener("keydown", (event) => {
+			const step = { ArrowLeft: 1.1, ArrowRight: 1 / 1.1 }[event.key];
+			if (!step) {
+				return;
+			}
+			event.preventDefault();
+			share = Math.min(Math.max(share * step, 0.2), 5);
+			lay(true, share);
+		});
+	}
 	app.querySelector("[data-close]").addEventListener("click", () => {
 		if (editor.value === saved || confirm("Discard the unsaved changes?")) {
 			go(parent(file));
@@ -429,9 +495,11 @@ async function editing(file) {
 	// rendered document are different heights, so an offset in lines would
 	// drift apart immediately. The surface scrolls itself; the preview
 	// scrolls in its pane.
-	const pane = article.parentElement;
-	link(editor.surface, pane);
-	link(pane, editor.surface);
+	if (rich) {
+		const pane = article.parentElement;
+		link(editor.surface, pane);
+		link(pane, editor.surface);
+	}
 
 	window.addEventListener("keydown", (event) => {
 		if ((event.metaKey || event.ctrlKey) && event.key === "s") {

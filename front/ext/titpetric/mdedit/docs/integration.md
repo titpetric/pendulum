@@ -37,6 +37,8 @@ new MarkdownEditor(field, {
 	tools: { embed: {...} },       // extra tools, or replacements by key
 	marks: true,                   // false opens with the markers hidden
 	frontmatter: true,             // false leaves a leading --- block as markdown
+	code: false,                   // true reads the whole file as one language
+	language: "",                  // the language code mode colours by
 	tab: true,                     // false gives Tab back to the browser
 	shortcuts: true,               // false gives Ctrl+B, Ctrl+I and the rest back
 	uploads: {...},                // absent means no uploads
@@ -46,6 +48,8 @@ new MarkdownEditor(field, {
 	texts: {...},                  // every string the editor can show
 });
 ```
+
+`code: true` reads every line as source of `language` and draws no markdown: no bar, no pilcrow, no widgets and no shortcuts. `language` is any word `highlightCode` knows; absent, `detectLanguage(value)` scores each language's keywords and picks the winner, and a file that names none stays uncoloured. The surface takes `--mdedit-code-font`, and the value goes on through the hidden textarea.
 
 `toolbar` takes the keys of `tools`: `bold`, `italic`, `strike`, `heading`, `link`, `code`, `fence`, `quote`, `list`, `table`, `upload` once a project configures uploads, and `proof` once it names a `proof` reader. `TOOLBAR_FULL` is the first ten, `TOOLBAR_INLINE` the five that suit a one-paragraph field. A tool is
 

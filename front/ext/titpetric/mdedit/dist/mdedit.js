@@ -1,233 +1,3 @@
-// src/util.js
-function roving(bar, signal) {
-  const buttons = () => [...bar.querySelectorAll("button")];
-  const hold = (button) => {
-    for (const other of buttons()) {
-      other.tabIndex = other === button ? 0 : -1;
-    }
-  };
-  hold(buttons()[0]);
-  bar.addEventListener(
-    "keydown",
-    (event) => {
-      const list = buttons();
-      const at3 = list.indexOf(document.activeElement);
-      if (at3 < 0) {
-        return;
-      }
-      const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
-      const to = step ? at3 + step : { Home: 0, End: list.length - 1 }[event.key];
-      if (to === void 0) {
-        return;
-      }
-      event.preventDefault();
-      const button = list[(to + list.length) % list.length];
-      hold(button);
-      button.focus();
-    },
-    { signal }
-  );
-  bar.addEventListener(
-    "focusin",
-    (event) => {
-      if (event.target.tagName === "BUTTON") {
-        hold(event.target);
-      }
-    },
-    { signal }
-  );
-}
-function tool({ prefix, key, title, icon, label, word, run, hold = true }) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = `${prefix}__tool ${prefix}__tool--${key}`;
-  button.title = title;
-  button.setAttribute("aria-label", title);
-  if (icon) {
-    const mark = document.createElement("span");
-    mark.className = `icon ${icon}`;
-    mark.setAttribute("aria-hidden", "true");
-    button.appendChild(mark);
-  }
-  if (label && !icon) {
-    button.classList.add(`${prefix}__tool--label`);
-    button.textContent = label;
-  } else if (label && word) {
-    const span = document.createElement("span");
-    span.className = `${prefix}__tool-label`;
-    span.textContent = label;
-    button.appendChild(span);
-  }
-  if (hold) {
-    button.addEventListener("mousedown", (event) => event.preventDefault());
-  }
-  if (run) {
-    button.addEventListener("click", run);
-  }
-  return button;
-}
-function place(element, root, event) {
-  const box = root.getBoundingClientRect();
-  const gap = 6;
-  const fit = (want, size3) => Math.min(Math.max(want, 0), Math.max(size3, 0));
-  const inWindow = (want, size3, most) => Math.max(gap, Math.min(want, most - size3 - gap));
-  const left = inWindow(event.clientX, element.offsetWidth, window.innerWidth);
-  const top = inWindow(event.clientY + gap, element.offsetHeight, window.innerHeight);
-  element.style.left = `${fit(left - box.left, box.width - element.offsetWidth)}px`;
-  element.style.top = `${fit(top - box.top, box.height - element.offsetHeight)}px`;
-}
-function dismiss({ open, element, close, signal, keep }) {
-  document.addEventListener(
-    "pointerdown",
-    (event) => {
-      if (!open() || element().contains(event.target) || keep?.()?.contains(event.target)) {
-        return;
-      }
-      close();
-    },
-    { signal }
-  );
-  document.addEventListener(
-    "keydown",
-    (event) => {
-      if (open() && event.key === "Escape") {
-        event.preventDefault();
-        close();
-      }
-    },
-    { signal }
-  );
-}
-async function resolve(option, ...args) {
-  return typeof option === "function" ? await option(...args) : option;
-}
-function nearBox(selection) {
-  const node = selection.anchorNode;
-  if (!node) {
-    return null;
-  }
-  const beside = node.nodeType === Node.ELEMENT_NODE ? node.childNodes[selection.anchorOffset] ?? node.lastChild ?? node : node;
-  if (beside.nodeType === Node.TEXT_NODE) {
-    const over = document.createRange();
-    over.selectNodeContents(beside);
-    const box = over.getBoundingClientRect();
-    if (box.height || box.width) {
-      return box;
-    }
-  }
-  const element = beside.nodeType === Node.ELEMENT_NODE ? beside : beside.parentElement;
-  return (element?.closest("[class*='__line']") ?? element)?.getBoundingClientRect() ?? null;
-}
-function scrollTo(selection, margin = 96) {
-  if (!selection || selection.rangeCount === 0) {
-    return;
-  }
-  let box = selection.getRangeAt(0).getBoundingClientRect();
-  if (box.height === 0 && box.width === 0) {
-    box = nearBox(selection) ?? box;
-  }
-  if (box.height === 0 && box.top === 0) {
-    return;
-  }
-  const top = margin;
-  const bottom = window.innerHeight - margin;
-  let by = 0;
-  if (box.top < top) {
-    by = box.top - top;
-  } else if (box.bottom > bottom) {
-    by = Math.min(box.bottom - bottom, box.top - top);
-  }
-  if (Math.abs(by) < 32) {
-    return;
-  }
-  const still = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  window.scrollBy({ top: by, behavior: still ? "auto" : "smooth" });
-}
-
-// src/heading.js
-var PREFIX = /^(#{1,6})([ \t]+)/;
-var LEVELS = 6;
-function levelOf(line) {
-  return line.match(PREFIX)?.[1].length ?? 0;
-}
-var prefixOf = (level) => level > 0 ? `${"#".repeat(level)} ` : "";
-var LevelMenu = class {
-  constructor(editor) {
-    this.editor = editor;
-    this.prefix = editor.prefix;
-    this.element = null;
-    this.line = null;
-  }
-  get open() {
-    return Boolean(this.element);
-  }
-  attach(signal) {
-    this.editor.surface.addEventListener(
-      "click",
-      (event) => {
-        const label = event.target.closest?.(`.${this.prefix}__level`);
-        if (!label || !this.editor.surface.contains(label)) {
-          return;
-        }
-        event.preventDefault();
-        this.show(label.parentElement, event);
-      },
-      { signal }
-    );
-    dismiss({ open: () => this.open, element: () => this.element, close: () => this.close(), signal });
-  }
-  // show opens the levels over the line the label belongs to. Each one is
-  // drawn at the size it writes, so the choice reads as what it does.
-  show(line, event) {
-    this.close();
-    this.line = line;
-    const texts = this.editor.texts;
-    const current = this.editor.source.levelAt(line);
-    this.element = document.createElement("div");
-    this.element.className = `${this.prefix}__menu ${this.prefix}__levels`;
-    this.element.setAttribute("role", "menu");
-    this.element.setAttribute("aria-label", texts.headingLevel);
-    for (let level = 1; level <= LEVELS; level += 1) {
-      this.element.appendChild(this.item(level, `${texts.heading} ${level}`, current === level));
-    }
-    this.element.appendChild(this.item(0, texts.headingText, current === 0));
-    this.editor.root.appendChild(this.element);
-    place(this.element, this.editor.root, event);
-    this.element.querySelector("button")?.focus();
-  }
-  item(level, label, checked) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `${this.prefix}__menu-item ${this.prefix}__level-item`;
-    button.dataset.level = String(level);
-    button.setAttribute("role", "menuitemradio");
-    button.setAttribute("aria-checked", String(checked));
-    const mark = document.createElement("span");
-    mark.className = `${this.prefix}__level-mark`;
-    mark.textContent = level > 0 ? `H${level}` : "\xB6";
-    mark.setAttribute("aria-hidden", "true");
-    const text2 = document.createElement("span");
-    text2.textContent = label;
-    button.append(mark, text2);
-    button.addEventListener("mousedown", (event) => event.preventDefault());
-    button.addEventListener("click", () => {
-      const line = this.line;
-      this.close();
-      this.editor.source.setLevel(line, level);
-      this.editor.focus();
-    });
-    return button;
-  }
-  close() {
-    if (!this.open) {
-      return;
-    }
-    this.element.remove();
-    this.element = null;
-    this.line = null;
-  }
-};
-
 // src/escape.js
 function escapeHTML(text2) {
   return text2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -667,6 +437,276 @@ function highlightCode(line, prefix, language) {
   }
   return out + escapeHTML(line.slice(last));
 }
+var SIGNATURES = {
+  bash: ["#!/bin/", "export ", "local ", "then", " fi", "done", "esac", "echo "],
+  css: ["@media", "margin", "padding", "display:", "font-size", "border:", "background"],
+  go: ["package ", "func ", "defer ", " chan ", "range ", "goroutine", " nil", "struct {"],
+  html: ["<!doctype", "<html", "<div", "<span", "</"],
+  js: ["function ", "const ", " let ", "console.", "require(", "=>", "document.", "window."],
+  php: ["<?php", "foreach", "echo ", "public ", "private ", "protected ", "namespace ", "instanceof", "->"],
+  python: ["def ", "elif", "import ", "None", "True", "False", "print(", "self."],
+  sql: ["select ", "from ", "where ", "join ", "insert ", "update ", "create table", "group by", "order by"],
+  ts: ["interface ", "implements ", "enum ", "readonly ", "type "]
+};
+function count(text2, word) {
+  const left = /^[a-z]/i.test(word) ? "\\b" : "";
+  const right = /[a-z0-9]$/i.test(word) ? "\\b" : "";
+  const pattern = new RegExp(`${left}${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}${right}`, "g");
+  return (text2.match(pattern) ?? []).length;
+}
+function detectLanguage(source) {
+  const text2 = String(source ?? "").toLowerCase();
+  let best = "";
+  let top = 0;
+  for (const [language, words2] of Object.entries(SIGNATURES)) {
+    const score = words2.reduce((total, word) => total + count(text2, word), 0);
+    if (score > top) {
+      top = score;
+      best = language;
+    }
+  }
+  if (top > 0) {
+    return best;
+  }
+  const trimmed = text2.trim();
+  if (/^[{\[]/.test(trimmed) && /"[^"]+"\s*:/.test(trimmed)) {
+    return "json";
+  }
+  if (/^[\w.-]+\s*:/m.test(trimmed)) {
+    return "yaml";
+  }
+  return "";
+}
+
+// src/util.js
+function roving(bar, signal) {
+  const buttons = () => [...bar.querySelectorAll("button")];
+  const hold = (button) => {
+    for (const other of buttons()) {
+      other.tabIndex = other === button ? 0 : -1;
+    }
+  };
+  hold(buttons()[0]);
+  bar.addEventListener(
+    "keydown",
+    (event) => {
+      const list = buttons();
+      const at3 = list.indexOf(document.activeElement);
+      if (at3 < 0) {
+        return;
+      }
+      const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+      const to = step ? at3 + step : { Home: 0, End: list.length - 1 }[event.key];
+      if (to === void 0) {
+        return;
+      }
+      event.preventDefault();
+      const button = list[(to + list.length) % list.length];
+      hold(button);
+      button.focus();
+    },
+    { signal }
+  );
+  bar.addEventListener(
+    "focusin",
+    (event) => {
+      if (event.target.tagName === "BUTTON") {
+        hold(event.target);
+      }
+    },
+    { signal }
+  );
+}
+function tool({ prefix, key, title, icon, label, word, run, hold = true }) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `${prefix}__tool ${prefix}__tool--${key}`;
+  button.title = title;
+  button.setAttribute("aria-label", title);
+  if (icon) {
+    const mark = document.createElement("span");
+    mark.className = `icon ${icon}`;
+    mark.setAttribute("aria-hidden", "true");
+    button.appendChild(mark);
+  }
+  if (label && !icon) {
+    button.classList.add(`${prefix}__tool--label`);
+    button.textContent = label;
+  } else if (label && word) {
+    const span = document.createElement("span");
+    span.className = `${prefix}__tool-label`;
+    span.textContent = label;
+    button.appendChild(span);
+  }
+  if (hold) {
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+  }
+  if (run) {
+    button.addEventListener("click", run);
+  }
+  return button;
+}
+function place(element, root, event) {
+  const box = root.getBoundingClientRect();
+  const gap = 6;
+  const fit = (want, size3) => Math.min(Math.max(want, 0), Math.max(size3, 0));
+  const inWindow = (want, size3, most) => Math.max(gap, Math.min(want, most - size3 - gap));
+  const left = inWindow(event.clientX, element.offsetWidth, window.innerWidth);
+  const top = inWindow(event.clientY + gap, element.offsetHeight, window.innerHeight);
+  element.style.left = `${fit(left - box.left, box.width - element.offsetWidth)}px`;
+  element.style.top = `${fit(top - box.top, box.height - element.offsetHeight)}px`;
+}
+function dismiss({ open, element, close, signal, keep }) {
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
+      if (!open() || element().contains(event.target) || keep?.()?.contains(event.target)) {
+        return;
+      }
+      close();
+    },
+    { signal }
+  );
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (open() && event.key === "Escape") {
+        event.preventDefault();
+        close();
+      }
+    },
+    { signal }
+  );
+}
+async function resolve(option, ...args) {
+  return typeof option === "function" ? await option(...args) : option;
+}
+function nearBox(selection) {
+  const node = selection.anchorNode;
+  if (!node) {
+    return null;
+  }
+  const beside = node.nodeType === Node.ELEMENT_NODE ? node.childNodes[selection.anchorOffset] ?? node.lastChild ?? node : node;
+  if (beside.nodeType === Node.TEXT_NODE) {
+    const over = document.createRange();
+    over.selectNodeContents(beside);
+    const box = over.getBoundingClientRect();
+    if (box.height || box.width) {
+      return box;
+    }
+  }
+  const element = beside.nodeType === Node.ELEMENT_NODE ? beside : beside.parentElement;
+  return (element?.closest("[class*='__line']") ?? element)?.getBoundingClientRect() ?? null;
+}
+function scrollTo(selection, margin = 96) {
+  if (!selection || selection.rangeCount === 0) {
+    return;
+  }
+  let box = selection.getRangeAt(0).getBoundingClientRect();
+  if (box.height === 0 && box.width === 0) {
+    box = nearBox(selection) ?? box;
+  }
+  if (box.height === 0 && box.top === 0) {
+    return;
+  }
+  const top = margin;
+  const bottom = window.innerHeight - margin;
+  let by = 0;
+  if (box.top < top) {
+    by = box.top - top;
+  } else if (box.bottom > bottom) {
+    by = Math.min(box.bottom - bottom, box.top - top);
+  }
+  if (Math.abs(by) < 32) {
+    return;
+  }
+  const still = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  window.scrollBy({ top: by, behavior: still ? "auto" : "smooth" });
+}
+
+// src/heading.js
+var PREFIX = /^(#{1,6})([ \t]+)/;
+var LEVELS = 6;
+function levelOf(line) {
+  return line.match(PREFIX)?.[1].length ?? 0;
+}
+var prefixOf = (level) => level > 0 ? `${"#".repeat(level)} ` : "";
+var LevelMenu = class {
+  constructor(editor) {
+    this.editor = editor;
+    this.prefix = editor.prefix;
+    this.element = null;
+    this.line = null;
+  }
+  get open() {
+    return Boolean(this.element);
+  }
+  attach(signal) {
+    this.editor.surface.addEventListener(
+      "click",
+      (event) => {
+        const label = event.target.closest?.(`.${this.prefix}__level`);
+        if (!label || !this.editor.surface.contains(label)) {
+          return;
+        }
+        event.preventDefault();
+        this.show(label.parentElement, event);
+      },
+      { signal }
+    );
+    dismiss({ open: () => this.open, element: () => this.element, close: () => this.close(), signal });
+  }
+  // show opens the levels over the line the label belongs to. Each one is
+  // drawn at the size it writes, so the choice reads as what it does.
+  show(line, event) {
+    this.close();
+    this.line = line;
+    const texts = this.editor.texts;
+    const current = this.editor.source.levelAt(line);
+    this.element = document.createElement("div");
+    this.element.className = `${this.prefix}__menu ${this.prefix}__levels`;
+    this.element.setAttribute("role", "menu");
+    this.element.setAttribute("aria-label", texts.headingLevel);
+    for (let level = 1; level <= LEVELS; level += 1) {
+      this.element.appendChild(this.item(level, `${texts.heading} ${level}`, current === level));
+    }
+    this.element.appendChild(this.item(0, texts.headingText, current === 0));
+    this.editor.root.appendChild(this.element);
+    place(this.element, this.editor.root, event);
+    this.element.querySelector("button")?.focus();
+  }
+  item(level, label, checked) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `${this.prefix}__menu-item ${this.prefix}__level-item`;
+    button.dataset.level = String(level);
+    button.setAttribute("role", "menuitemradio");
+    button.setAttribute("aria-checked", String(checked));
+    const mark = document.createElement("span");
+    mark.className = `${this.prefix}__level-mark`;
+    mark.textContent = level > 0 ? `H${level}` : "\xB6";
+    mark.setAttribute("aria-hidden", "true");
+    const text2 = document.createElement("span");
+    text2.textContent = label;
+    button.append(mark, text2);
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("click", () => {
+      const line = this.line;
+      this.close();
+      this.editor.source.setLevel(line, level);
+      this.editor.focus();
+    });
+    return button;
+  }
+  close() {
+    if (!this.open) {
+      return;
+    }
+    this.element.remove();
+    this.element = null;
+    this.line = null;
+  }
+};
 
 // src/language.js
 var CodeMenu = class {
@@ -1324,10 +1364,10 @@ var LinkPanel = class {
     const title = document.createElement("span");
     title.className = name("links-title");
     title.textContent = texts.linkPanel;
-    const count = document.createElement("span");
-    count.className = name("links-count");
-    count.textContent = String(this.found.length);
-    head.append(title, count);
+    const count2 = document.createElement("span");
+    count2.className = name("links-count");
+    count2.textContent = String(this.found.length);
+    head.append(title, count2);
     const list = document.createElement("div");
     list.className = name("links-list");
     list.setAttribute("role", "table");
@@ -1635,22 +1675,22 @@ var ProofPanel = class {
     const title = document.createElement("span");
     title.className = name("proof-title");
     title.textContent = texts.proofPanel;
-    const count = document.createElement("span");
-    count.className = name("proof-count");
-    head.append(title, count);
+    const count2 = document.createElement("span");
+    count2.className = name("proof-count");
+    head.append(title, count2);
     const list = document.createElement("div");
     list.className = name("proof-list");
     if (findings === null) {
-      count.textContent = texts.proofReading;
+      count2.textContent = texts.proofReading;
       list.append(this.note(texts.proofReading));
     } else if (failure) {
-      count.textContent = "";
+      count2.textContent = "";
       list.append(this.note(failure));
     } else if (findings.length === 0) {
-      count.textContent = "0";
+      count2.textContent = "0";
       list.append(this.note(texts.proofClean));
     } else {
-      count.textContent = String(findings.length);
+      count2.textContent = String(findings.length);
       for (const finding of findings) {
         list.append(this.row(finding));
       }
@@ -4642,7 +4682,7 @@ var Surface = class extends Source {
   // the run draws once the writer moves on. The bar on a widget is the way
   // back into its markdown.
   decorate() {
-    if (this.drawing || this.composing || this.frontmatterSource(document.activeElement)) {
+    if (this.editor.code || this.drawing || this.composing || this.frontmatterSource(document.activeElement)) {
       return;
     }
     this.drawing = true;
@@ -4708,6 +4748,15 @@ var Surface = class extends Source {
   // paint tokenises one line, draws it, and answers the context for the
   // line below.
   paint(element, line, context) {
+    if (this.editor.code) {
+      element.className = `${this.prefix}__line ${this.prefix}-codeline`;
+      delete element.dataset.in;
+      element.replaceChildren(...this.nodes([{ code: line, language: this.editor.language }]));
+      if (element.textContent === "") {
+        element.replaceChildren(document.createElement("br"));
+      }
+      return null;
+    }
     const token = tokenise(line, context);
     const key = context === null ? this.cardKey(line) : null;
     if (key !== null) {
@@ -5449,10 +5498,10 @@ var Surface = class extends Source {
     if (event.key === "Enter") {
       event.preventDefault();
       const { start, end } = this.selection;
-      if (!event.shiftKey && start === end && (this.fenceEnter(start) || this.listEnter(start))) {
+      if (!this.editor.code && !event.shiftKey && start === end && (this.fenceEnter(start) || this.listEnter(start))) {
         return;
       }
-      const text2 = event.shiftKey ? "  \n" : "\n";
+      const text2 = event.shiftKey && !this.editor.code ? "  \n" : "\n";
       this.replace(start, end, text2, start + text2.length);
       return;
     }
@@ -5938,6 +5987,9 @@ ${marker}`, at3 + 1 + marker.length);
   // in, so one attribute answers it; what the foot says is the
   // stylesheet's, and generated content lands in no document.
   markOpenFence() {
+    if (this.editor.code) {
+      return;
+    }
     const last = this.element.lastElementChild;
     this.element.toggleAttribute("data-open-fence", Boolean(last && "in" in last.dataset));
   }
@@ -6610,10 +6662,12 @@ var MarkdownEditor = class _MarkdownEditor {
     this.texts = { ...TEXTS, ...options.texts };
     this.listeners = /* @__PURE__ */ new Map();
     this.releasingTab = false;
-    this.marks = options.marks !== false;
-    this.frontmatter = options.frontmatter !== false;
+    this.code = options.code === true;
+    this.language = this.code ? options.language || detectLanguage(field.value) : "";
+    this.marks = this.code ? false : options.marks !== false;
+    this.frontmatter = this.code ? false : options.frontmatter !== false;
     this.aborter = new AbortController();
-    this.uploads = options.uploads ? new Uploads(this, options.uploads) : null;
+    this.uploads = this.code ? null : options.uploads ? new Uploads(this, options.uploads) : null;
     this.uploadPanel = this.uploads ? new UploadPanel(this) : null;
     this.grid = new TableGrid(this);
     this.imagePanel = new ImagePanel(this);
@@ -6656,13 +6710,13 @@ var MarkdownEditor = class _MarkdownEditor {
     const field = this.field;
     const name = (part2) => `${this.prefix}__${part2}`;
     this.root = document.createElement("div");
-    this.root.className = this.prefix;
+    this.root.className = this.code ? `${this.prefix} ${this.prefix}--code` : this.prefix;
     field.parentNode.insertBefore(this.root, field);
     this.surface = document.createElement("div");
     this.surface.id = `${field.id}-surface`;
     this.surface.className = name("surface");
     this.surface.contentEditable = "true";
-    this.surface.spellcheck = this.options.spellcheck !== false;
+    this.surface.spellcheck = this.options.spellcheck ?? !this.code;
     this.surface.setAttribute("role", "textbox");
     this.surface.setAttribute("aria-multiline", "true");
     this.surface.setAttribute("aria-label", field.getAttribute("aria-label") ?? this.texts.document);
@@ -6727,7 +6781,7 @@ var MarkdownEditor = class _MarkdownEditor {
     if (event.target?.closest?.(`.${this.prefix}__frontmatter-source`)) {
       return;
     }
-    if (this.options.shortcuts !== false) {
+    if (!this.code && this.options.shortcuts !== false) {
       const tool2 = this.shortcut(event);
       if (tool2) {
         event.preventDefault();
@@ -6766,7 +6820,7 @@ var MarkdownEditor = class _MarkdownEditor {
     this.insert("	");
   }
   buildBar() {
-    const toolbar = this.options.toolbar ?? (this.uploads ? [...TOOLBAR_FULL, "upload"] : TOOLBAR_FULL);
+    const toolbar = this.options.toolbar ?? (this.code ? false : this.uploads ? [...TOOLBAR_FULL, "upload"] : TOOLBAR_FULL);
     if (toolbar === false) {
       this.marksButton = null;
       return null;
@@ -6930,6 +6984,7 @@ export {
   Uploads,
   alignImage,
   defaultTools,
+  detectLanguage,
   escapeHTML,
   highlight,
   highlightCode,
