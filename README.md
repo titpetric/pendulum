@@ -2,7 +2,7 @@
 
 An editor for the markdown and text files in a folder. It runs where the files are, saves them in place, and commits every save when the folder is a git repository.
 
-![Pendulum editing a post: the markdown surface with its toolbar on the left, the rendered page on the right, both drawing the same table and the same coloured code](https://cdn.si/titpetric/pendulum/images/pendulum.png)
+![Pendulum editing a post: the markdown surface with its toolbar on the left, the rendered page on the right, both drawing the same table and the same coloured code](https://cdn.si/titpetric/pendulum/images/pendulum.png?v=007768fb)
 
 ## Run it
 
@@ -49,7 +49,7 @@ The listing is the folder itself. New file and New folder make one; each row car
 
 The box in the bar reads every text file under the folder for a phrase, and answers the lines that carry it with the file and line each one is on. A result opens its file. Nothing is indexed: a folder of posts is a few megabytes, and reading it costs less than keeping an index honest while an editor writes into it.
 
-![Searching the folder: five lines carrying the phrase, each with the file and line it is on](https://cdn.si/titpetric/pendulum/images/pendulum-search.png)
+![Searching the folder: five lines carrying the phrase, each with the file and line it is on](https://cdn.si/titpetric/pendulum/images/pendulum-search.png?v=3eee7b18)
 
 ## Uploads
 
