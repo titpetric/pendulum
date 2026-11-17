@@ -3,15 +3,104 @@
 
 name: pendulum
 
+vars:
+  binary: ${BINARY:-pendulum}
+  ldflags: ${LDFLAGS:--s -w}
+  image: ${IMAGE:-titpetric/pendulum}
+  version: ${VERSION:-$(git describe --tags --always --dirty 2>/dev/null || echo dev)}
+
 tasks:
   default:
     desc: "Update the dependencies, test and build"
-    passthru: true
-    steps:
-      - make
+    cmds:
+      - task: deps
+      - task: test
+      - task: build
 
   deps:
     desc: "Update the Composer dependencies"
-    passthru: true
     steps:
-      - make deps
+      - composer update --no-interaction
+
+  build:
+    desc: "Build the binary into build/"
+    steps:
+      - mkdir -p build
+      - CGO_ENABLED=0 go build -trimpath -ldflags "${{ldflags}}" -o build/${{binary}} ./cmd/pendulum
+
+  test:
+    desc: "Run go vet and the tests"
+    steps:
+      - go vet ./...
+      - go test ./...
+
+  check:
+    desc: "Drive the editor and folder screens in a browser"
+    steps:
+      - node tests/browser.mjs
+      - node tests/issues.mjs
+
+  run:
+    desc: "Run the server"
+    steps:
+      - go run ./cmd/pendulum
+
+  docker:
+    desc: "Build the image"
+    steps:
+      - docker build --rm -t ${{image}}:${{version}} -t ${{image}}:latest .
+
+  docker-test:
+    desc: "Run the image and ask it to serve a folder"
+    steps:
+      - atkins docker
+      - docker run --rm ${{image}}:${{version}} -help 2>&1 | grep -q autosave
+      - docker run --rm -d --name ${{binary}}-check -p 18099:8080 -v "$PWD/tests/fixture:/app/contents" ${{image}}:${{version}}
+      - |
+        status=0
+        for i in $(seq 1 50); do
+          curl -sf http://127.0.0.1:18099/api/list/ >/dev/null && break
+          sleep 0.2
+        done
+        curl -sf http://127.0.0.1:18099/api/list/ | grep -q "hello.md" || status=1
+        curl -sf http://127.0.0.1:18099/ | grep -q "Pendulum" || status=1
+        docker rm -f ${{binary}}-check >/dev/null
+        exit $status
+      - echo "the image serves the folder it is given"
+
+  docker-push:
+    desc: "Run the image check, then push the image"
+    steps:
+      - atkins docker-test
+      - docker push ${{image}}:${{version}}
+      - docker push ${{image}}:latest
+
+  release:
+    desc: "Test, check, build and push the image"
+    steps:
+      - atkins test
+      - atkins check
+      - atkins docker-push
+      - echo "pushed ${{image}}:${{version}} and ${{image}}:latest"
+
+  release-binaries:
+    desc: "Build the release matrix"
+    steps:
+      - |
+        rm -rf build
+        mkdir -p build
+        for os in linux darwin windows; do
+          for arch in amd64 arm64; do
+            out=build/${{binary}}-$os-$arch
+            if [ "$os" = windows ]; then out=$out.exe; fi
+            echo "$out"
+            GOOS=$os GOARCH=$arch CGO_ENABLED=0 \
+              go build -trimpath -ldflags "${{ldflags}}" -o "$out" ./cmd/pendulum || exit 1
+          done
+        done
+        find build -type f
+
+  clean:
+    desc: "Remove the build directory"
+    steps:
+      - rm -rf build

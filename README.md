@@ -82,28 +82,29 @@ A relative image resolves against the document: beside it, in a folder named aft
 
 | Command                 | What it does                                            |
 |-------------------------|---------------------------------------------------------|
-| `make test`             | `go vet` and `go test ./...`                            |
-| `make check`            | the editor screen and the folder screen, in a browser   |
-| `make build`            | the binary, in `build/`                                 |
-| `make docker`           | the image, tagged with the version and `latest`         |
-| `make docker-test`      | runs the image and asks it to serve a folder            |
-| `make docker-push`      | the two gates above, then the registry                  |
-| `make release`          | tests, browser checks, image, image check, push         |
-| `make release-binaries` | the release matrix, linux, macOS and windows            |
-| `make deps`             | update the dependencies, mdedit among them              |
+| `atkins`                | the dependencies, the tests and the binary              |
+| `atkins test`           | `go vet` and `go test ./...`                            |
+| `atkins check`          | the editor screen and the folder screen, in a browser   |
+| `atkins build`          | the binary, in `build/`                                 |
+| `atkins docker`         | the image, tagged with the version and `latest`         |
+| `atkins docker-test`    | runs the image and asks it to serve a folder            |
+| `atkins docker-push`    | the two gates above, then the registry                  |
+| `atkins release`        | tests, browser checks, image, image check, push         |
+| `atkins release-binaries` | the release matrix, linux, macOS and windows          |
+| `atkins deps`           | update the dependencies, mdedit among them              |
 
-`make release` is the whole of a release and nothing reaches the registry that has not passed what stands above it: the tests, the browser checks, the image built, and the image run and asked to serve a folder. The tag is `git describe` unless one is named:
+`atkins release` is the whole of a release and nothing reaches the registry that has not passed what stands above it: the tests, the browser checks, the image built, and the image run and asked to serve a folder. The tag is `git describe` unless one is named:
 
 ```sh
-make release VERSION=1.2.0 IMAGE=titpetric/pendulum
+VERSION=1.2.0 IMAGE=titpetric/pendulum atkins release
 ```
 
-The frontend is HTML, CSS and ES modules under `front/`, built into the binary with `embed`. There is no node toolchain and no build step: what is in the folder is what the browser receives. `make deps` runs `composer update`, which installs the latest [mdedit](https://github.com/titpetric/mdedit) into `ext/titpetric/mdedit/`.
+The frontend is HTML, CSS and ES modules under `front/`, built into the binary with `embed`. There is no node toolchain and no build step: what is in the folder is what the browser receives. `atkins deps` runs `composer update`, which installs the latest [mdedit](https://github.com/titpetric/mdedit) into `ext/titpetric/mdedit/`.
 
-`make check` is what proves the screens after such an update. It builds the binary, serves a folder it writes itself, and drives chromium over the page: the listing, a file opened, typing, Ctrl-S and the Save button, the dirty marker, the pilcrow, the scroll sync, a pasted image and the panel over it, then the folder's own actions, the search, the preview folding and the document saving itself. Two variables point at what the machine has, where playwright and chromium are not installed beside the repository:
+`atkins check` is what proves the screens after such an update. It builds the binary, serves a folder it writes itself, and drives chromium over the page: the listing, a file opened, typing, Ctrl-S and the Save button, the dirty marker, the pilcrow, the scroll sync, a pasted image and the panel over it, then the folder's own actions, the search, the preview folding and the document saving itself. Two variables point at what the machine has, where playwright and chromium are not installed beside the repository:
 
 ```sh
-PLAYWRIGHT=/path/to/playwright/index.mjs CHROMIUM=/usr/lib/chromium/chromium make check
+PLAYWRIGHT=/path/to/playwright/index.mjs CHROMIUM=/usr/lib/chromium/chromium atkins check
 ```
 
 Written by [@TitPetric](https://github.com/titpetric), licensed under [WTFPL](http://www.wtfpl.net/txt/copying/).
