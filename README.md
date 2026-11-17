@@ -2,7 +2,7 @@
 
 An editor for the markdown and text files in a folder. It runs where the files are, saves them in place, and commits every save when the folder is a git repository.
 
-![Pendulum editing a post: the markdown surface with its toolbar on the left, the rendered page on the right, both drawing the same table and the same coloured code](https://cdn.si/titpetric/pendulum/images/pendulum.png?v=007768fb)
+![Pendulum editing a post: the markdown surface with its toolbar on the left, the rendered page on the right, both drawing the same table and the same coloured code](https://cdn.si/titpetric/pendulum/images/pendulum.png?v=8f6b753d)
 
 ## Run it
 

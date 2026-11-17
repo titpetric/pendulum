@@ -102,6 +102,8 @@ await page.evaluate(() => {
 });
 await page.reload({ waitUntil: "networkidle" });
 await page.waitForSelector(".preview h2");
+await page.locator(".mdedit__tool--marks").click();
+await page.waitForSelector(".mdedit__lang");
 await page.waitForTimeout(600);
 await page.screenshot({ path: join(root, "images", "pendulum.png") });
 
