@@ -32,7 +32,7 @@ func newServer(t *testing.T) (*httptest.Server, string) {
 		t.Fatal(err)
 	}
 
-	server := httptest.NewServer(Routes(&API{Root: root, Uploads: uploads, Frontend: os.DirFS(root)}))
+	server := httptest.NewServer(Routes(os.DirFS(root), &API{Root: root, Uploads: uploads, Frontend: os.DirFS(root)}))
 	t.Cleanup(server.Close)
 
 	return server, root

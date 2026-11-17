@@ -1,11 +1,14 @@
 package main
 
-import "net/http"
+import (
+	"io/fs"
+	"net/http"
+)
 
 // Routes answers the whole of the server: the API, the folder being edited,
-// and the frontend. net/http's own patterns carry the method and the
-// wildcard, so there is no router to depend on.
-func Routes(api *API) *http.ServeMux {
+// the editor's bundle and the frontend. net/http's own patterns carry the
+// method and the wildcard, so there is no router to depend on.
+func Routes(mdedit fs.FS, api *API) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /api/list/{path...}", api.ListHandler)
@@ -20,6 +23,7 @@ func Routes(api *API) *http.ServeMux {
 	mux.HandleFunc("GET /api/settings", api.SettingsHandler)
 
 	mux.HandleFunc("GET /contents/{path...}", api.ContentsHandler)
+	mux.Handle("GET /mdedit/", http.StripPrefix("/mdedit/", http.FileServer(http.FS(mdedit))))
 	mux.HandleFunc("GET /", api.FrontendHandler)
 
 	return mux

@@ -68,7 +68,7 @@ func run(addr, contents, ext string, autosave time.Duration) error {
 
 	server := &http.Server{
 		Addr:              addr,
-		Handler:           logging(Routes(api)),
+		Handler:           logging(Routes(pendulum.MDEdit(), api)),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

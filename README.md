@@ -98,7 +98,7 @@ A relative image resolves against the document: beside it, in a folder named aft
 make release VERSION=1.2.0 IMAGE=titpetric/pendulum
 ```
 
-The frontend is HTML, CSS and ES modules under `front/`, built into the binary with `embed`. There is no node toolchain and no build step: what is in the folder is what the browser receives. `make deps` runs `composer update`, which installs the latest [mdedit](https://github.com/titpetric/mdedit) into `front/ext/mdedit/`.
+The frontend is HTML, CSS and ES modules under `front/`, built into the binary with `embed`. There is no node toolchain and no build step: what is in the folder is what the browser receives. `make deps` runs `composer update`, which installs the latest [mdedit](https://github.com/titpetric/mdedit) into `ext/titpetric/mdedit/`.
 
 `make check` is what proves the screens after such an update. It builds the binary, serves a folder it writes itself, and drives chromium over the page: the listing, a file opened, typing, Ctrl-S and the Save button, the dirty marker, the pilcrow, the scroll sync, a pasted image and the panel over it, then the folder's own actions, the search, the preview folding and the document saving itself. Two variables point at what the machine has, where playwright and chromium are not installed beside the repository:
 

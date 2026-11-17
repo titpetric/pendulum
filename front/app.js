@@ -4,7 +4,7 @@
 // around it, the calls to the API, and the preview pane that renders through
 // the server.
 
-import { MarkdownEditor, TOOLBAR_FULL, highlightCode } from "/ext/mdedit/dist/mdedit.min.js";
+import { MarkdownEditor, TOOLBAR_FULL, highlightCode } from "/mdedit/mdedit.min.js";
 
 const app = document.getElementById("app");
 

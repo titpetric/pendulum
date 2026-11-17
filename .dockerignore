@@ -1,7 +1,8 @@
 /build
 /contents
 /pendulum
-/ext
+/ext/autoload.php
+/ext/composer
 .git
 images
 tests
