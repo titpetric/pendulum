@@ -10,9 +10,5 @@
   },
   "config": {
     "vendor-dir": "ext"
-  },
-  "scripts": {
-    "post-install-cmd": ["rm -rf ext/titpetric/mdedit/.git"],
-    "post-update-cmd": ["rm -rf ext/titpetric/mdedit/.git"]
   }
 }

@@ -12,7 +12,7 @@
 // writes to it. It keeps its name and its value, and the form and the no-JS
 // fallback go on working unchanged.
 
-import { highlightCode } from "./code.js";
+import { canonical, highlightCode } from "./code.js";
 import { LEVELS, PREFIX, levelOf, prefixOf } from "./heading.js";
 import { FENCE, ITEM, inlineTokens, tokenise } from "./highlight.js";
 import { mediaKind } from "./inline.js";
@@ -505,6 +505,10 @@ export class Surface extends Source {
 
 	// decorateFrontmatter draws the fields at the head of the document.
 	decorateFrontmatter() {
+		if (!this.editor.frontmatter) {
+			return;
+		}
+
 		const segments = [...this.element.children];
 		if (!segments.length || isWidget(segments[0])) {
 			return;
@@ -600,6 +604,13 @@ export class Surface extends Source {
 			element.appendChild(this.label(level));
 		} else {
 			delete element.dataset.level;
+		}
+
+		// The top edge of a fenced block says which language colours it, for
+		// the view where the word on the fence is hidden with the rest of the
+		// markers. A closing fence carries none: its word is the opener's.
+		if (token.name === "fence" && token.context !== null) {
+			element.appendChild(this.langLabel(canonical(token.context)));
 		}
 
 		element.toggleAttribute("data-card", key !== null);
@@ -939,6 +950,49 @@ export class Surface extends Source {
 		element.setAttribute("aria-label", `${this.editor.texts.heading} ${level}`);
 
 		return element;
+	}
+
+	// langLabel draws the word on an opening fence as the label on the top
+	// edge of the block, for the view where the fence characters are hidden.
+	// It carries no text either, and a click on it opens the languages.
+	langLabel(language) {
+		const texts = this.editor.texts;
+		const element = document.createElement("span");
+		element.className = `${this.prefix}__lang`;
+		element.dataset.lang = language || texts.codePlain;
+		element.contentEditable = "false";
+		element.setAttribute("role", "button");
+		element.setAttribute("aria-label", `${texts.codeLanguage}: ${language || texts.codeText}`);
+
+		return element;
+	}
+
+	// languageAt answers the language an opening fence names, and "" for a
+	// fence that names none. Aliases answer the name they stand for, so the
+	// menu marks `go` for a fence written `golang`.
+	languageAt(segment) {
+		const found = segment && this.element.contains(segment) ? read(segment).match(FENCE) : null;
+		return found ? canonical(found[3].trim().split(/\s+/)[0] ?? "") : "";
+	}
+
+	// setLanguage writes the word on an opening fence and leaves the rest of
+	// the info string where it stood. No language takes the whole string off.
+	setLanguage(segment, language) {
+		if (!segment || !this.element.contains(segment) || "in" in segment.dataset) {
+			return;
+		}
+
+		const line = read(segment);
+		const found = line.match(FENCE);
+		if (!found) {
+			return;
+		}
+
+		const [, lead, ticks, rest] = found;
+		const tail = rest.replace(/^\s*\S*/, "");
+		const start = this.startOf(segment);
+		const want = language ? `${lead}${ticks}${language}${tail}` : `${lead}${ticks}`;
+		this.replace(start, start + line.length, want, start + want.length);
 	}
 
 	// levelAt answers the level one line of the surface is written at, and 0

@@ -243,6 +243,26 @@ for (let press = 0; press < 8; press += 1) {
 }
 ok("undo: it comes back", (await value()) === original, JSON.stringify(await value()));
 
+// ── 10. a host with no metadata turns the fields off ────────────────────
+
+const OFF = "---\ntitle: A\n---\n\nBody\n";
+const off = await page.evaluate((markdown) => {
+	const field = document.createElement("textarea");
+	field.value = markdown;
+	document.body.appendChild(field);
+	const editor = new window.editor.constructor(field, { frontmatter: false });
+	const result = {
+		drawn: Boolean(editor.root.querySelector(".mdedit__widget--frontmatter")),
+		text: editor.root.textContent.includes("title: A"),
+		value: editor.value,
+	};
+	editor.destroy();
+	field.remove();
+	return result;
+}, OFF);
+ok("option: frontmatter false draws no fields", off.drawn === false, JSON.stringify(off));
+ok("option: and the block stays markdown", off.text && off.value === OFF, JSON.stringify(off.value));
+
 await browser.close();
 ok("the page stayed quiet", noise.length === 0, noise.slice(0, 3).join(" / "));
 console.log(problems.length === 0 ? "\nALL PASS" : `\n${problems.length} FAILING:\n${problems.map((p) => `  ${p}`).join("\n")}`);

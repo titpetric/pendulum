@@ -1,0 +1,17 @@
+#!/usr/bin/env atkins
+# Atkins: https://github.com/titpetric/atkins
+
+name: pendulum
+
+tasks:
+  default:
+    desc: "Update the dependencies, test and build"
+    passthru: true
+    steps:
+      - make
+
+  deps:
+    desc: "Update the Composer dependencies"
+    passthru: true
+    steps:
+      - make deps

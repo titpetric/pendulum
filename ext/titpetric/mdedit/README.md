@@ -65,7 +65,7 @@ Install the package into `ext/`, not `vendor/`: a Go module zip omits `vendor/`.
 - **Headings.** Typed with hashes, sized where they stand, with a level label from `H1` to `H6` and a chooser that moves the level. [Headings](#headings)
 - **Shortcuts.** Ctrl+B, Ctrl+I, Ctrl+Shift+X and Ctrl+Shift+S decorate the selection, and a second press takes it off.
 - **Lists and quotes.** Enter continues a list at its depth; a quote keeps its markers and reads in italics. [Lists and quotes](#lists-and-quotes)
-- **Code.** A fenced block draws as one surface and colours by the word on the fence, with no parser and no dependency. [Code blocks](#code-blocks)
+- **Code.** A fenced block draws as one surface and colours by the word on the fence, with no parser and no dependency. With the markers hidden the block's top edge names that word, and a press on it opens the languages. [Code blocks](#code-blocks)
 - **Tables.** Pipe rows draw as a table, edited cell by cell, with a grid over it and a menu for the structural edits. [Tables](#tables)
 - **Front matter.** A `---` block at the head draws as fields, with a YAML source view and a button for the next field. [Front matter](#front-matter)
 - **Images.** Paste, drop or pick; the panel edits the caption, the address and the alignment that floats it in the prose. [Images](#images)
@@ -109,13 +109,25 @@ A quote keeps its `>` markers and reads in italics, so a passage of quoted text 
 
 A fenced block draws as one surface, fences included, and the writer types into it where it stands. Tab writes a tab into the block.
 
-A regex and a bag of words colour the code inside, with no parser and no dependency. The word on the opening fence picks the bag:
+With the markers hidden the fences go and the block reads as one box. The word on the opening fence stands at the top right of the block, and a press on that label opens the languages: bash, css, go, html, js, json, php, python, sql, ts, yaml, and plain text for a fence that names none. The field above the list filters it, and Enter writes the word in the field. A fence keeps a language the list does not hold. Choosing one writes the word onto the opening fence. The colourer reads the lines below in it. A fence that names no language, or names `text`, keeps its characters uncoloured.
 
-| Fence         | What colours                                                                                    |
-|---------------|-------------------------------------------------------------------------------------------------|
-| ````go`       | the common words, plus go's own keywords, its sized types and its builtins                      |
-| ` ```php`     | the common words, plus php's keywords, `$variables`, `Exception` and its builtins               |
-| anything else | the common set: declarations, control words, types, strings, numbers, comments, brackets, calls |
+![Three code blocks with their fences hidden: bash, json and a block that names no language, each with its language at the top right](docs/code.png)
+
+![The language menu over a block, its field filtering the list to go, json and python](docs/code-menu.png)
+
+A regex and a bag of words colour the code inside, with no parser and no dependency. The word on the opening fence picks the bag; a fence with no word has none to pick:
+
+| Fence                         | What colours                                                                                    |
+|-------------------------------|-------------------------------------------------------------------------------------------------|
+| ` ```go`                      | the common words, plus go's own keywords, its sized types and its builtins                      |
+| ` ```php`                     | the common words, plus php's keywords, `$variables`, `Exception` and its builtins               |
+| ` ```bash`                    | the common words, plus shell's control words, `$variables` and the commands it runs             |
+| ` ```python`                  | the common words, plus python's keywords, its builtins and `True`, `False`, `None`              |
+| ` ```js`, ` ```ts`, ` ```sql` | the common words, plus that language's own list of words                                        |
+| any other word                | the common set: declarations, control words, types, strings, numbers, comments, brackets, calls |
+| no word, or `text`            | no colour: the lines are the characters they are                                                |
+
+An alias answers the name it stands for: `golang`, `shell`, `sh`, `yml`, `javascript`, `typescript` and `py` resolve to the word they mean, and `plain`, `plaintext` and `txt` mean no language at all.
 
 The classes are `.mdedit-c-declare`, `-keyword`, `-type`, `-builtin`, `-call`, `-string`, `-number`, `-comment`, `-variable`, `-bracket`, `-operator`, and four variables colour them: `--mdedit-keyword`, `--mdedit-string`, `--mdedit-number`, `--mdedit-comment`.
 
@@ -162,6 +174,8 @@ A list, a flow collection, a block scalar or an object below the first level is 
 The `<>` button swaps the table for the whole block as YAML in a monospace textarea. The same button parses the text and draws the table again; a block with no closing delimiter keeps the source view. The add-field button writes a root-level key and value. A row with no key writes nothing.
 
 What is typed is a string. A value that would read as another YAML type or needs a quote is double-quoted and escaped. A line nobody edited is written back exactly as it came in.
+
+A comment, a reply or a chat message holds no metadata. A host that exposes none passes `frontmatter: false`, which leaves a leading `---` block as markdown.
 
 ## Images
 

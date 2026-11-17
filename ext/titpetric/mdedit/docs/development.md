@@ -18,7 +18,7 @@ The test runner starts the same script on a free port against a copy of `demo/da
 PLAYWRIGHT=/path/to/playwright/index.mjs CHROMIUM=/usr/lib/chromium/chromium atkins test
 ```
 
-Fifteen suites drive a real browser over the demo server, which the runner starts on a port of its own against a copy of `demo/data`:
+Sixteen suites drive a real browser over the demo server, which the runner starts on a port of its own against a copy of `demo/data`:
 
 | Suite         | What it drives                                                    |
 |---------------|-------------------------------------------------------------------|
@@ -26,6 +26,7 @@ Fifteen suites drive a real browser over the demo server, which the runner start
 | `editing`     | undo, paste, the grid, the image panel, uploads                   |
 | `keys`        | Tab, Shift-Tab, Escape, and where the focus goes                  |
 | `headings`    | the level label, the keys that move it, the chooser               |
+| `langs`       | the language on a code block, and the menu that writes it         |
 | `cards`       | the block a host draws for a marker of its own                    |
 | `tables`      | Tab and Backspace through a table, and the menu over it           |
 | `frontmatter` | the YAML head, its fields, source view and rich rows              |
@@ -59,6 +60,7 @@ The repository commits `dist/`, so a project that copies it needs no toolchain. 
 | `src/escape.js`      | what the colourer and the renderers escape first                           |
 | `src/tools.js`       | the default toolbar                                                        |
 | `src/code.js`        | the colour inside a fenced block                                           |
+| `src/language.js`    | the language on a code block, and the menu that writes it                  |
 | `src/surface.js`     | the contenteditable surface, the caret and the keys                        |
 | `src/widgets.js`     | the table and front matter a document draws in place                       |
 | `src/frontmatter.js` | the YAML block, its fields and its source offsets                          |
@@ -88,15 +90,16 @@ node tests/shots.mjs editor render
 
 It runs what the browser suites run: the demo server over a copy of `demo/data` with `docs/example.md` beside it, a Chromium window 960 pixels wide and a clip of the `.mdedit` element, widened to take in a panel that stands outside the editor's box.
 
-| Image                                | Scene                                                           |
-|--------------------------------------|-----------------------------------------------------------------|
-| `editor.png`, `render.png`           | `docs/example.md`, markers shown and then hidden                |
-| `upload.png`                         | one file in flight at 60%, `ETA 12s`                            |
-| `upload-failed.png`                  | one file refused by the server, the reason on its preview       |
-| `upload-queue.png`                   | the queue over three files: one refused, one landed, one at 40% |
-| `table.png`, `menu.png`, `image.png` | the table, the menu over a cell and the image panel             |
-| `heading.png`, `links.png`           | the level chooser and the links table                           |
-| `frontmatter.png`                    | the fields at the head of a document                            |
+| Image                                | Scene                                                             |
+|--------------------------------------|-------------------------------------------------------------------|
+| `editor.png`, `render.png`           | `docs/example.md`, markers shown and then hidden                  |
+| `upload.png`                         | one file in flight at 60%, `ETA 12s`                              |
+| `upload-failed.png`                  | one file refused by the server, the reason on its preview         |
+| `upload-queue.png`                   | the queue over three files: one refused, one landed, one at 40%   |
+| `table.png`, `menu.png`, `image.png` | the table, the menu over a cell and the image panel               |
+| `heading.png`, `links.png`           | the level chooser and the links table                             |
+| `code.png`, `code-menu.png`          | three code blocks with their fences hidden, and the menu over one |
+| `frontmatter.png`                    | the fields at the head of a document                              |
 
 `docs/example.md` is the fixture for the first two, so a change to it means taking both again. A change to the bar means taking all of them, since every image holds it. Playwright and Chromium are not dependencies of this project. A machine with Docker can use an image holding Node, Chromium and phpscript, set `PLAYWRIGHT` and `CHROMIUM` for it as the Tests section says, and copy the repository in with `docker cp` when a bind mount does not reach the working tree.
 

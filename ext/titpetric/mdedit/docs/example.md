@@ -32,7 +32,7 @@ Enter at the end of an item opens the next one with its marker there already, an
 
 ## Code
 
-A fenced block paints as one surface and colours by the word on the fence.
+A fenced block paints as one surface and colours by the word on the fence. With the markers hidden the fences go and the word stands at the top right of the block, where a press on it opens the languages.
 
 ```go
 // shipped counts what went out.
@@ -63,7 +63,7 @@ final class Shipment
 
 A document that ends inside a block says so at its foot, since every key inside one is a character of the code. A blank line, then Enter on a second blank line, writes the fence that closes it.
 
-A fence with no language falls back to the common bag of words:
+A fence with no language keeps its characters uncoloured, and its block says `text` at the top right:
 
 ```
 make build && ./pendulum -ext jpg,png ~/notes

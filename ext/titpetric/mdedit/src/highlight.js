@@ -152,8 +152,9 @@ export function tokenise(line, context = null) {
 			name: "fence",
 			children,
 			// The word on an opening fence picks the keywords the lines below
-			// it colour against; the next fence closes the block.
-			context: context === null ? rest.trim().toLowerCase() : null,
+			// it colour against; the next fence closes the block. Anything
+			// after the word is the fence's own business.
+			context: context === null ? (rest.trim().split(/\s+/)[0] ?? "").toLowerCase() : null,
 		};
 	}
 

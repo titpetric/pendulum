@@ -74,6 +74,7 @@ release-binaries:
 
 # Refresh the editor and the rest of the Composer dependencies.
 deps:
+	@test -d ext/titpetric/mdedit/.git || rm -rf ext/titpetric/mdedit ext/composer/installed.json ext/composer/installed.php
 	composer update --no-interaction
 
 clean:

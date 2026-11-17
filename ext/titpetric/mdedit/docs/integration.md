@@ -36,6 +36,7 @@ new MarkdownEditor(field, {
 	toolbar: TOOLBAR_FULL,         // keys to show, or false for no bar
 	tools: { embed: {...} },       // extra tools, or replacements by key
 	marks: true,                   // false opens with the markers hidden
+	frontmatter: true,             // false leaves a leading --- block as markdown
 	tab: true,                     // false gives Tab back to the browser
 	shortcuts: true,               // false gives Ctrl+B, Ctrl+I and the rest back
 	uploads: {...},                // absent means no uploads
@@ -59,6 +60,8 @@ Ctrl+B, Ctrl+I, Ctrl+Shift+X and Ctrl+Shift+S decorate the selection, and pressi
 The bar holds at the top of the window while the editor is in view, so a writer at the foot of a long document can still press a button about the line they are on, and it leaves with the editor's own foot, so it stands over nobody else's part of the page. `--mdedit-sticky` is how far down it holds, for a page whose own header is already there; `--mdedit-bar-position: static` turns it off.
 
 Tab writes a tab, and a selection of lines indents; Shift-Tab takes one level back off. In a drawn table Tab crosses the cells and grows the table at the foot of it, which [Tables](../README.md#tables) sets out. Escape first and the next Tab moves the focus on, which is the way out for anyone driving the page from the keyboard. `tab: false` leaves Tab to the browser.
+
+`frontmatter: false` leaves a leading `---` block as markdown. A comment, a reply or a chat message holds no metadata. A host that exposes none passes it.
 
 ## Uploads
 

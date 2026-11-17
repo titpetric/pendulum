@@ -573,6 +573,91 @@
 	min-height: 0.8em;
 }
 
+/* With the markers hidden a fence is the edge of the block, not a line of
+   code: the opening fence keeps the room for the language at its right, the
+   closing one is a thin foot, and neither shows a character. */
+.mdedit:not(.mdedit--marks) .mdedit-fence {
+	min-height: 0.8em;
+	line-height: 0.8em;
+}
+.mdedit:not(.mdedit--marks) .mdedit-fence:not([data-in]) {
+	position: relative;
+	min-height: 0.9em;
+}
+.mdedit:not(.mdedit--marks) .mdedit-fence[data-in] {
+	min-height: 0.4em;
+}
+
+/* The word the fence names, on the top edge of the block. It carries no
+   text - the stylesheet writes it from the attribute - and a click on it
+   opens the languages. With the markers shown the fence says it itself. */
+.mdedit__lang {
+	position: absolute;
+	top: 0.35em;
+	right: 0.6em;
+	padding: 0.1em 0.45em;
+	border: 1px solid var(--mdedit-line);
+	border-radius: var(--mdedit-radius);
+	background: var(--mdedit-paper);
+	color: var(--mdedit-ink-soft);
+	font-family: var(--mdedit-ui-font);
+	font-size: calc(var(--mdedit-ui-size) * 0.72);
+	letter-spacing: 0.04em;
+	line-height: 1.4;
+	cursor: pointer;
+	user-select: none;
+}
+.mdedit__lang::after { content: attr(data-lang); }
+.mdedit__lang:hover {
+	border-color: var(--mdedit-accent);
+	color: var(--mdedit-accent-text);
+}
+.mdedit--marks .mdedit__lang { display: none; }
+
+@media (pointer: coarse) {
+	.mdedit__lang { padding: 0.3em 0.65em; }
+}
+
+/* The languages a label opens, with the one the fence names marked. A field
+   above the list filters it, and Enter writes whatever the field holds, so a
+   word the list does not carry is still a language. Only the list scrolls:
+   the field stays where the writer is typing. */
+.mdedit__langs {
+	display: flex;
+	flex-direction: column;
+	min-width: 12rem;
+	max-height: min(20rem, 70vh);
+	overflow: hidden;
+}
+
+.mdedit__lang-filter {
+	margin: calc(var(--mdedit-gap) / 2) calc(var(--mdedit-gap) * 1.5);
+	padding: 0.35em 0.5em;
+	border: 1px solid var(--mdedit-line-strong);
+	border-radius: var(--mdedit-radius);
+	background: var(--mdedit-paper);
+	color: var(--mdedit-ink);
+	font-family: var(--mdedit-code-font);
+	font-size: calc(var(--mdedit-ui-size) * 0.85);
+}
+.mdedit__lang-filter:focus-visible {
+	outline: 2px solid var(--mdedit-accent);
+	outline-offset: -1px;
+}
+
+.mdedit__lang-list {
+	min-height: 0;
+	overflow-y: auto;
+	padding: calc(var(--mdedit-gap) / 2) 0;
+}
+.mdedit__lang-item { font-family: var(--mdedit-code-font); }
+.mdedit__lang-empty {
+	margin: 0;
+	padding: 0.35em 0.9em 0.55em;
+	color: var(--mdedit-ink-soft);
+	font-size: 0.85em;
+}
+
 /* The pilcrow rides at the end of a line of prose, as generated content: it
    is not part of the document, so it cannot land in what the form posts.
    Zero width and absolute leading keep it out of the line's own layout, and

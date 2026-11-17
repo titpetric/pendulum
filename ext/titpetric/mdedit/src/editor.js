@@ -12,6 +12,7 @@
 // fallback and the server-side validation go on working unchanged.
 
 import { LevelMenu } from "./heading.js";
+import { CodeMenu } from "./language.js";
 import { ImagePanel } from "./images.js";
 import { LinkPanel } from "./links.js";
 import { ProofPanel } from "./proof.js";
@@ -80,6 +81,11 @@ export const TEXTS = {
 	frontmatterRowAdd: "Add a field",
 	frontmatterRich: "rich type, edit via source",
 	frontmatterInvalid: "This is not a front matter block",
+	codeLanguage: "Code language",
+	codeText: "Plain text",
+	codePlain: "text",
+	codeFilter: "Filter or type a language",
+	codeCustom: "Enter writes a word the list does not hold.",
 	rowAbove: "Row above",
 	rowBelow: "Row below",
 	columnLeft: "Column to the left",
@@ -133,6 +139,8 @@ export class MarkdownEditor {
 		this.releasingTab = false;
 		// Whether the marker characters show. A document opens with them on.
 		this.marks = options.marks !== false;
+		// Whether a leading --- block draws as fields.
+		this.frontmatter = options.frontmatter !== false;
 		// One controller for every listener this editor adds, so destroy()
 		// is a single abort and no list of removals has to stay in step.
 		this.aborter = new AbortController();
@@ -146,6 +154,7 @@ export class MarkdownEditor {
 		this.proofPanel = options.proof ? new ProofPanel(this) : null;
 		this.tableMenu = new TableMenu(this);
 		this.levelMenu = new LevelMenu(this);
+		this.codeMenu = new CodeMenu(this);
 		this.tools = {
 			...defaultTools(),
 			...(this.uploads
@@ -229,6 +238,7 @@ export class MarkdownEditor {
 		this.imagePanel.attach(signal);
 		this.tableMenu.attach(signal);
 		this.levelMenu.attach(signal);
+		this.codeMenu.attach(signal);
 
 		this.toggleMarks(this.marks);
 	}
@@ -517,6 +527,7 @@ export class MarkdownEditor {
 		this.linkPanel.close();
 		this.tableMenu.close();
 		this.levelMenu.close();
+		this.codeMenu.close();
 		this.uploadPanel?.close();
 		this.uploads?.destroy();
 		this.aborter.abort();

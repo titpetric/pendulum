@@ -24,6 +24,7 @@ const SUITES = [
 	["editing", "undo, paste, the grid, the image panel, uploads", []],
 	["keys", "Tab, Shift-Tab, Escape, and where the focus goes", []],
 	["headings", "the level label, the keys that move it, the chooser", []],
+	["langs", "the language on a code block, and the menu that writes it", []],
 	["cards", "the block a host draws for a marker of its own", []],
 	["tables", "Tab and Backspace through a table, and the menu over it", []],
 	["frontmatter", "the YAML head, its fields, source view and rich rows", []],

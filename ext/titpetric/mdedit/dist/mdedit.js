@@ -233,6 +233,618 @@ function escapeHTML(text2) {
   return text2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// src/code.js
+var COMMON = {
+  declare: [
+    "func",
+    "function",
+    "fn",
+    "def",
+    "sub",
+    "method",
+    "class",
+    "struct",
+    "interface",
+    "enum",
+    "trait",
+    "type",
+    "var",
+    "let",
+    "const",
+    "static",
+    "final",
+    "abstract",
+    "public",
+    "private",
+    "protected",
+    "extends",
+    "implements",
+    "package",
+    "namespace",
+    "module",
+    "import",
+    "include",
+    "require",
+    "use",
+    "export",
+    "from",
+    "return"
+  ],
+  keyword: [
+    "if",
+    "else",
+    "elseif",
+    "elif",
+    "for",
+    "foreach",
+    "while",
+    "do",
+    "switch",
+    "case",
+    "default",
+    "break",
+    "continue",
+    "goto",
+    "try",
+    "catch",
+    "finally",
+    "throw",
+    "new",
+    "delete",
+    "in",
+    "of",
+    "as",
+    "and",
+    "or",
+    "not",
+    "yield",
+    "await",
+    "async"
+  ],
+  type: [
+    "int",
+    "integer",
+    "float",
+    "double",
+    "long",
+    "short",
+    "byte",
+    "char",
+    "rune",
+    "string",
+    "str",
+    "bool",
+    "boolean",
+    "void",
+    "any",
+    "object",
+    "array",
+    "list",
+    "map",
+    "dict",
+    "set",
+    "error",
+    "exception",
+    "null",
+    "nil",
+    "none",
+    "true",
+    "false",
+    "undefined",
+    "this",
+    "self"
+  ]
+};
+var LANGUAGES = {
+  go: {
+    keyword: ["defer", "go", "select", "range", "fallthrough", "chan"],
+    type: [
+      "int8",
+      "int16",
+      "int32",
+      "int64",
+      "uint",
+      "uint8",
+      "uint16",
+      "uint32",
+      "uint64",
+      "float32",
+      "float64",
+      "complex64",
+      "complex128",
+      "uintptr",
+      "any",
+      "error"
+    ],
+    builtin: [
+      "append",
+      "make",
+      "len",
+      "cap",
+      "copy",
+      "close",
+      "delete",
+      "panic",
+      "recover",
+      "print",
+      "println",
+      "new",
+      "min",
+      "max",
+      "clear"
+    ]
+  },
+  php: {
+    declare: ["readonly", "global", "instanceof", "clone", "fn", "match", "enum"],
+    keyword: ["echo", "print", "endif", "endforeach", "endwhile", "declare", "yield"],
+    type: [
+      "Throwable",
+      "Exception",
+      "Error",
+      "TypeError",
+      "ValueError",
+      "Closure",
+      "Generator",
+      "iterable",
+      "callable",
+      "mixed",
+      "never",
+      "stdClass",
+      "parent"
+    ],
+    builtin: [
+      "isset",
+      "unset",
+      "empty",
+      "count",
+      "implode",
+      "explode",
+      "sprintf",
+      "printf",
+      "str_replace",
+      "strlen",
+      "substr",
+      "trim",
+      "in_array",
+      "array_map",
+      "array_filter",
+      "array_merge",
+      "json_encode",
+      "json_decode",
+      "preg_match",
+      "preg_replace",
+      "file_get_contents",
+      "file_put_contents",
+      "var_dump"
+    ]
+  },
+  bash: {
+    declare: ["function", "local", "export", "readonly", "declare", "source", "alias"],
+    keyword: ["then", "fi", "elif", "esac", "done", "until", "select", "time", "coproc"],
+    builtin: [
+      "echo",
+      "printf",
+      "read",
+      "cd",
+      "pwd",
+      "test",
+      "set",
+      "unset",
+      "shift",
+      "exit",
+      "trap",
+      "wait",
+      "exec",
+      "eval",
+      "let",
+      "true",
+      "false",
+      "type",
+      "kill",
+      "sleep",
+      "grep",
+      "sed",
+      "awk",
+      "curl",
+      "wget",
+      "git",
+      "make",
+      "ls",
+      "cp",
+      "mv",
+      "rm",
+      "mkdir",
+      "chmod",
+      "chown",
+      "sort",
+      "head",
+      "tail",
+      "wc",
+      "find",
+      "xargs",
+      "tee",
+      "env",
+      "sudo"
+    ]
+  },
+  python: {
+    declare: ["def", "lambda", "global", "nonlocal", "pass", "assert", "del", "raise", "with"],
+    keyword: ["elif", "except", "finally", "is", "not", "and", "or", "match", "case"],
+    type: ["True", "False", "None", "bytes", "bytearray", "object", "complex"],
+    builtin: [
+      "print",
+      "len",
+      "range",
+      "str",
+      "int",
+      "list",
+      "dict",
+      "tuple",
+      "open",
+      "enumerate",
+      "zip",
+      "map",
+      "filter",
+      "sum",
+      "min",
+      "max",
+      "any",
+      "all",
+      "sorted",
+      "isinstance",
+      "super",
+      "input",
+      "format"
+    ]
+  },
+  js: {
+    declare: ["async", "await", "yield"],
+    keyword: ["instanceof", "typeof", "delete", "void"],
+    type: ["NaN", "Infinity", "Symbol", "BigInt"],
+    builtin: [
+      "console",
+      "JSON",
+      "Math",
+      "Object",
+      "Array",
+      "Promise",
+      "Map",
+      "Set",
+      "document",
+      "window",
+      "require",
+      "parseInt",
+      "parseFloat",
+      "String",
+      "Number"
+    ]
+  },
+  ts: {
+    declare: ["type", "namespace", "implements", "abstract", "readonly"],
+    type: ["unknown", "never", "keyof"]
+  },
+  sql: {
+    declare: [
+      "select",
+      "from",
+      "where",
+      "insert",
+      "update",
+      "delete",
+      "create",
+      "drop",
+      "alter",
+      "table",
+      "index",
+      "view",
+      "join",
+      "group",
+      "order",
+      "having",
+      "limit",
+      "offset",
+      "union",
+      "values",
+      "into",
+      "column"
+    ],
+    keyword: [
+      "and",
+      "or",
+      "not",
+      "as",
+      "on",
+      "by",
+      "distinct",
+      "primary",
+      "key",
+      "foreign",
+      "references",
+      "default",
+      "cascade",
+      "begin",
+      "commit",
+      "rollback"
+    ],
+    type: ["varchar", "text", "timestamp", "date", "boolean", "serial", "bigint", "decimal", "numeric"],
+    builtin: ["count", "sum", "avg", "min", "max", "coalesce", "now"]
+  }
+};
+var FENCE_LANGUAGES = ["bash", "css", "go", "html", "js", "json", "php", "python", "sql", "ts", "yaml"];
+var ALIASES = {
+  golang: "go",
+  php5: "php",
+  php8: "php",
+  shell: "bash",
+  sh: "bash",
+  zsh: "bash",
+  console: "bash",
+  yml: "yaml",
+  javascript: "js",
+  mjs: "js",
+  node: "js",
+  typescript: "ts",
+  py: "python",
+  python3: "python",
+  plain: "text",
+  plaintext: "text",
+  txt: "text"
+};
+function canonical(language) {
+  return ALIASES[language] ?? language;
+}
+var bags = /* @__PURE__ */ new Map();
+function words(language) {
+  const name = canonical(language);
+  if (bags.has(name)) {
+    return bags.get(name);
+  }
+  const bag = /* @__PURE__ */ new Map();
+  const add = (list, kind) => {
+    for (const word of list ?? []) {
+      bag.set(word, kind);
+    }
+  };
+  add(COMMON.declare, "declare");
+  add(COMMON.keyword, "keyword");
+  add(COMMON.type, "type");
+  const extra = LANGUAGES[name];
+  if (extra) {
+    add(extra.declare, "declare");
+    add(extra.keyword, "keyword");
+    add(extra.type, "type");
+    add(extra.builtin, "builtin");
+  }
+  bags.set(name, bag);
+  return bag;
+}
+var TOKEN = new RegExp(
+  [
+    "(?<comment>//[^\\n]*|#[^\\n]*|/\\*[^\\n]*?\\*/|--[^\\n]*)",
+    "(?<string>\"(?:\\\\.|[^\"\\\\])*\"?|'(?:\\\\.|[^'\\\\])*'?|`[^`]*`?)",
+    "(?<number>\\b0[xXbBoO][0-9a-fA-F_]+\\b|\\b\\d[\\d_]*(?:\\.\\d+)?\\b)",
+    "(?<call>[A-Za-z_][\\w]*)(?=\\s*\\()",
+    "(?<variable>\\$[A-Za-z_]\\w*|@[A-Za-z_]\\w*)",
+    "(?<name>[A-Za-z_][\\w]*)",
+    "(?<bracket>[{}()\\[\\]])",
+    "(?<operator>[=+\\-*/%<>!&|^~?:;,.])"
+  ].join("|"),
+  "g"
+);
+function highlightCode(line, prefix, language) {
+  const name = canonical(language);
+  if (name === "" || name === "text") {
+    return escapeHTML(line);
+  }
+  const bag = words(name);
+  const tok = (name2, body) => `<span class="${prefix}-c-${name2}">${body}</span>`;
+  let out = "";
+  let last = 0;
+  for (const match of line.matchAll(TOKEN)) {
+    const { comment, string, number, call, variable, name: name2, bracket, operator } = match.groups;
+    out += escapeHTML(line.slice(last, match.index));
+    last = match.index + match[0].length;
+    const safe = escapeHTML(match[0]);
+    if (comment !== void 0) {
+      out += tok("comment", safe);
+    } else if (string !== void 0) {
+      out += tok("string", safe);
+    } else if (number !== void 0) {
+      out += tok("number", safe);
+    } else if (call !== void 0) {
+      const kind = bag.get(call);
+      out += tok(kind === "declare" || kind === "keyword" ? kind : kind ?? "call", safe);
+    } else if (variable !== void 0) {
+      out += tok("variable", safe);
+    } else if (name2 !== void 0) {
+      const kind = bag.get(name2);
+      out += kind ? tok(kind, safe) : safe;
+    } else if (bracket !== void 0) {
+      out += tok("bracket", safe);
+    } else if (operator !== void 0) {
+      out += tok("operator", safe);
+    }
+  }
+  return out + escapeHTML(line.slice(last));
+}
+
+// src/language.js
+var CodeMenu = class {
+  constructor(editor) {
+    this.editor = editor;
+    this.prefix = editor.prefix;
+    this.element = null;
+    this.input = null;
+    this.list = null;
+    this.empty = null;
+    this.line = null;
+    this.current = "";
+    this.anchor = null;
+  }
+  get open() {
+    return Boolean(this.element);
+  }
+  attach(signal) {
+    this.editor.surface.addEventListener(
+      "click",
+      (event) => {
+        const label = event.target.closest?.(`.${this.prefix}__lang`);
+        if (!label || !this.editor.surface.contains(label)) {
+          return;
+        }
+        event.preventDefault();
+        this.show(label.parentElement, event);
+      },
+      { signal }
+    );
+    dismiss({ open: () => this.open, element: () => this.element, close: () => this.close(), signal });
+  }
+  // show opens the languages over the fence the label belongs to, with the
+  // one the fence names marked and a field to filter them.
+  show(line, event) {
+    this.close();
+    this.line = line;
+    const texts = this.editor.texts;
+    this.current = this.editor.source.languageAt(line);
+    this.anchor = { clientX: event.clientX, clientY: event.clientY };
+    this.element = document.createElement("div");
+    this.element.className = `${this.prefix}__menu ${this.prefix}__langs`;
+    this.element.setAttribute("role", "dialog");
+    this.element.setAttribute("aria-label", texts.codeLanguage);
+    this.input = document.createElement("input");
+    this.input.type = "text";
+    this.input.className = `${this.prefix}__lang-filter`;
+    this.input.placeholder = texts.codeFilter;
+    this.input.setAttribute("aria-label", texts.codeFilter);
+    this.input.autocomplete = "off";
+    this.input.spellcheck = false;
+    this.list = document.createElement("div");
+    this.list.className = `${this.prefix}__lang-list`;
+    this.list.setAttribute("role", "listbox");
+    this.list.setAttribute("aria-label", texts.codeLanguage);
+    this.add("", texts.codeText);
+    for (const language of FENCE_LANGUAGES) {
+      this.add(language, language);
+    }
+    this.empty = document.createElement("p");
+    this.empty.className = `${this.prefix}__lang-empty`;
+    this.empty.textContent = texts.codeCustom;
+    this.empty.hidden = true;
+    this.element.append(this.input, this.list, this.empty);
+    this.editor.root.appendChild(this.element);
+    place(this.element, this.editor.root, event);
+    this.input.addEventListener("input", () => this.filter());
+    this.input.addEventListener("keydown", (event2) => this.key(event2));
+    this.list.addEventListener("keydown", (event2) => this.step(event2));
+    this.input.focus();
+  }
+  // add draws one language in the list. Plain text is the empty word: the
+  // fence then names no language and its lines stay uncoloured.
+  add(language, label) {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = `${this.prefix}__menu-item ${this.prefix}__lang-item`;
+    item.dataset.language = language;
+    item.setAttribute("role", "option");
+    item.setAttribute("aria-selected", String(language === this.current));
+    item.textContent = label;
+    item.addEventListener("mousedown", (event) => event.preventDefault());
+    item.addEventListener("click", () => this.write(language));
+    this.list.appendChild(item);
+    return item;
+  }
+  // filter takes the list down to the words the field holds.
+  filter() {
+    const query = this.input.value.trim().toLowerCase();
+    let shown = 0;
+    for (const item of this.list.children) {
+      item.hidden = query !== "" && !item.textContent.toLowerCase().includes(query);
+      if (!item.hidden) {
+        shown += 1;
+      }
+    }
+    this.empty.hidden = shown > 0;
+    place(this.element, this.editor.root, this.anchor);
+  }
+  // key holds the field's Enter and Down. Enter takes the one language the
+  // field names, the one the list has left, or the word itself, so a
+  // language the list does not hold is still a language.
+  key(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      this.press();
+      return;
+    }
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      this.visible()[0]?.focus();
+    }
+  }
+  press() {
+    const word = this.word();
+    if (word === "") {
+      return;
+    }
+    const exact = this.exact(word);
+    if (exact !== null) {
+      this.write(exact);
+      return;
+    }
+    const items = this.visible();
+    this.write(items.length === 1 ? items[0].dataset.language : word);
+  }
+  // exact answers the language the field names, or null. Plain text is the
+  // empty word on the fence, and the names it is written with answer it.
+  exact(word) {
+    const name = canonical(word.toLowerCase());
+    for (const item of this.list.children) {
+      if (item.dataset.language === name || item.dataset.language === "" && name === "text") {
+        return item.dataset.language;
+      }
+    }
+    return null;
+  }
+  // step moves the focus down the list and back up it, from the item the
+  // arrow keys stand on.
+  step(event) {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
+      return;
+    }
+    const items = this.visible();
+    const at3 = items.indexOf(document.activeElement);
+    const to = at3 + (event.key === "ArrowDown" ? 1 : -1);
+    event.preventDefault();
+    items[(to + items.length) % items.length]?.focus();
+  }
+  visible() {
+    return [...this.list.querySelectorAll("button:not([hidden])")];
+  }
+  // word reads the field as a fence info word: one token, no character a
+  // fence is spelled with.
+  word() {
+    return (this.input.value.trim().split(/\s+/)[0] ?? "").replace(/[`~]/g, "");
+  }
+  write(language) {
+    const line = this.line;
+    this.close();
+    this.editor.source.setLanguage(line, language);
+    this.editor.focus();
+  }
+  close() {
+    if (!this.open) {
+      return;
+    }
+    this.element.remove();
+    this.element = null;
+    this.input = null;
+    this.list = null;
+    this.empty = null;
+    this.line = null;
+    this.current = "";
+    this.anchor = null;
+  }
+};
+
 // src/inline.js
 var HOLD = String.fromCharCode(0);
 var HELD = new RegExp(`${HOLD}(\\d+)${HOLD}`, "g");
@@ -2801,268 +3413,6 @@ var UploadPanel = class {
   }
 };
 
-// src/code.js
-var COMMON = {
-  declare: [
-    "func",
-    "function",
-    "fn",
-    "def",
-    "sub",
-    "method",
-    "class",
-    "struct",
-    "interface",
-    "enum",
-    "trait",
-    "type",
-    "var",
-    "let",
-    "const",
-    "static",
-    "final",
-    "abstract",
-    "public",
-    "private",
-    "protected",
-    "extends",
-    "implements",
-    "package",
-    "namespace",
-    "module",
-    "import",
-    "include",
-    "require",
-    "use",
-    "export",
-    "from",
-    "return"
-  ],
-  keyword: [
-    "if",
-    "else",
-    "elseif",
-    "elif",
-    "for",
-    "foreach",
-    "while",
-    "do",
-    "switch",
-    "case",
-    "default",
-    "break",
-    "continue",
-    "goto",
-    "try",
-    "catch",
-    "finally",
-    "throw",
-    "new",
-    "delete",
-    "in",
-    "of",
-    "as",
-    "and",
-    "or",
-    "not",
-    "yield",
-    "await",
-    "async"
-  ],
-  type: [
-    "int",
-    "integer",
-    "float",
-    "double",
-    "long",
-    "short",
-    "byte",
-    "char",
-    "rune",
-    "string",
-    "str",
-    "bool",
-    "boolean",
-    "void",
-    "any",
-    "object",
-    "array",
-    "list",
-    "map",
-    "dict",
-    "set",
-    "error",
-    "exception",
-    "null",
-    "nil",
-    "none",
-    "true",
-    "false",
-    "undefined",
-    "this",
-    "self"
-  ]
-};
-var LANGUAGES = {
-  go: {
-    keyword: ["defer", "go", "select", "range", "fallthrough", "chan"],
-    type: [
-      "int8",
-      "int16",
-      "int32",
-      "int64",
-      "uint",
-      "uint8",
-      "uint16",
-      "uint32",
-      "uint64",
-      "float32",
-      "float64",
-      "complex64",
-      "complex128",
-      "uintptr",
-      "any",
-      "error"
-    ],
-    builtin: [
-      "append",
-      "make",
-      "len",
-      "cap",
-      "copy",
-      "close",
-      "delete",
-      "panic",
-      "recover",
-      "print",
-      "println",
-      "new",
-      "min",
-      "max",
-      "clear"
-    ]
-  },
-  php: {
-    declare: ["readonly", "global", "instanceof", "clone", "fn", "match", "enum"],
-    keyword: ["echo", "print", "endif", "endforeach", "endwhile", "declare", "yield"],
-    type: [
-      "Throwable",
-      "Exception",
-      "Error",
-      "TypeError",
-      "ValueError",
-      "Closure",
-      "Generator",
-      "iterable",
-      "callable",
-      "mixed",
-      "never",
-      "stdClass",
-      "parent"
-    ],
-    builtin: [
-      "isset",
-      "unset",
-      "empty",
-      "count",
-      "implode",
-      "explode",
-      "sprintf",
-      "printf",
-      "str_replace",
-      "strlen",
-      "substr",
-      "trim",
-      "in_array",
-      "array_map",
-      "array_filter",
-      "array_merge",
-      "json_encode",
-      "json_decode",
-      "preg_match",
-      "preg_replace",
-      "file_get_contents",
-      "file_put_contents",
-      "var_dump"
-    ]
-  }
-};
-var ALIASES = {
-  golang: "go",
-  php5: "php",
-  php8: "php"
-};
-var bags = /* @__PURE__ */ new Map();
-function words(language) {
-  const name = ALIASES[language] ?? language;
-  if (bags.has(name)) {
-    return bags.get(name);
-  }
-  const bag = /* @__PURE__ */ new Map();
-  const add = (list, kind) => {
-    for (const word of list ?? []) {
-      bag.set(word, kind);
-    }
-  };
-  add(COMMON.declare, "declare");
-  add(COMMON.keyword, "keyword");
-  add(COMMON.type, "type");
-  const extra = LANGUAGES[name];
-  if (extra) {
-    add(extra.declare, "declare");
-    add(extra.keyword, "keyword");
-    add(extra.type, "type");
-    add(extra.builtin, "builtin");
-  }
-  bags.set(name, bag);
-  return bag;
-}
-var TOKEN = new RegExp(
-  [
-    "(?<comment>//[^\\n]*|#[^\\n]*|/\\*[^\\n]*?\\*/|--[^\\n]*)",
-    "(?<string>\"(?:\\\\.|[^\"\\\\])*\"?|'(?:\\\\.|[^'\\\\])*'?|`[^`]*`?)",
-    "(?<number>\\b0[xXbBoO][0-9a-fA-F_]+\\b|\\b\\d[\\d_]*(?:\\.\\d+)?\\b)",
-    "(?<call>[A-Za-z_][\\w]*)(?=\\s*\\()",
-    "(?<variable>\\$[A-Za-z_]\\w*|@[A-Za-z_]\\w*)",
-    "(?<name>[A-Za-z_][\\w]*)",
-    "(?<bracket>[{}()\\[\\]])",
-    "(?<operator>[=+\\-*/%<>!&|^~?:;,.])"
-  ].join("|"),
-  "g"
-);
-function highlightCode(line, prefix, language) {
-  const bag = words(language);
-  const tok = (name, body) => `<span class="${prefix}-c-${name}">${body}</span>`;
-  let out = "";
-  let last = 0;
-  for (const match of line.matchAll(TOKEN)) {
-    const { comment, string, number, call, variable, name, bracket, operator } = match.groups;
-    out += escapeHTML(line.slice(last, match.index));
-    last = match.index + match[0].length;
-    const safe = escapeHTML(match[0]);
-    if (comment !== void 0) {
-      out += tok("comment", safe);
-    } else if (string !== void 0) {
-      out += tok("string", safe);
-    } else if (number !== void 0) {
-      out += tok("number", safe);
-    } else if (call !== void 0) {
-      const kind = bag.get(call);
-      out += tok(kind === "declare" || kind === "keyword" ? kind : kind ?? "call", safe);
-    } else if (variable !== void 0) {
-      out += tok("variable", safe);
-    } else if (name !== void 0) {
-      const kind = bag.get(name);
-      out += kind ? tok(kind, safe) : safe;
-    } else if (bracket !== void 0) {
-      out += tok("bracket", safe);
-    } else if (operator !== void 0) {
-      out += tok("operator", safe);
-    }
-  }
-  return out + escapeHTML(line.slice(last));
-}
-
 // src/highlight.js
 var FENCE = /^(\s*)(```|~~~)(.*)$/;
 var HEADING = /^(#{1,6}\s+)(.*)$/;
@@ -3164,8 +3514,9 @@ function tokenise(line, context = null) {
       name: "fence",
       children,
       // The word on an opening fence picks the keywords the lines below
-      // it colour against; the next fence closes the block.
-      context: context === null ? rest.trim().toLowerCase() : null
+      // it colour against; the next fence closes the block. Anything
+      // after the word is the fence's own business.
+      context: context === null ? (rest.trim().split(/\s+/)[0] ?? "").toLowerCase() : null
     };
   }
   if (context !== null) {
@@ -4315,6 +4666,9 @@ var Surface = class extends Source {
   }
   // decorateFrontmatter draws the fields at the head of the document.
   decorateFrontmatter() {
+    if (!this.editor.frontmatter) {
+      return;
+    }
     const segments = [...this.element.children];
     if (!segments.length || isWidget(segments[0])) {
       return;
@@ -4381,6 +4735,9 @@ var Surface = class extends Source {
       element.appendChild(this.label(level));
     } else {
       delete element.dataset.level;
+    }
+    if (token.name === "fence" && token.context !== null) {
+      element.appendChild(this.langLabel(canonical(token.context)));
     }
     element.toggleAttribute("data-card", key !== null);
     if (key !== null) {
@@ -4651,6 +5008,43 @@ var Surface = class extends Source {
     element.setAttribute("role", "button");
     element.setAttribute("aria-label", `${this.editor.texts.heading} ${level}`);
     return element;
+  }
+  // langLabel draws the word on an opening fence as the label on the top
+  // edge of the block, for the view where the fence characters are hidden.
+  // It carries no text either, and a click on it opens the languages.
+  langLabel(language) {
+    const texts = this.editor.texts;
+    const element = document.createElement("span");
+    element.className = `${this.prefix}__lang`;
+    element.dataset.lang = language || texts.codePlain;
+    element.contentEditable = "false";
+    element.setAttribute("role", "button");
+    element.setAttribute("aria-label", `${texts.codeLanguage}: ${language || texts.codeText}`);
+    return element;
+  }
+  // languageAt answers the language an opening fence names, and "" for a
+  // fence that names none. Aliases answer the name they stand for, so the
+  // menu marks `go` for a fence written `golang`.
+  languageAt(segment) {
+    const found = segment && this.element.contains(segment) ? read(segment).match(FENCE) : null;
+    return found ? canonical(found[3].trim().split(/\s+/)[0] ?? "") : "";
+  }
+  // setLanguage writes the word on an opening fence and leaves the rest of
+  // the info string where it stood. No language takes the whole string off.
+  setLanguage(segment, language) {
+    if (!segment || !this.element.contains(segment) || "in" in segment.dataset) {
+      return;
+    }
+    const line = read(segment);
+    const found = line.match(FENCE);
+    if (!found) {
+      return;
+    }
+    const [, lead, ticks, rest] = found;
+    const tail = rest.replace(/^\s*\S*/, "");
+    const start = this.startOf(segment);
+    const want = language ? `${lead}${ticks}${language}${tail}` : `${lead}${ticks}`;
+    this.replace(start, start + line.length, want, start + want.length);
   }
   // levelAt answers the level one line of the surface is written at, and 0
   // for a line that is not a heading.
@@ -6170,6 +6564,11 @@ var TEXTS = {
   frontmatterRowAdd: "Add a field",
   frontmatterRich: "rich type, edit via source",
   frontmatterInvalid: "This is not a front matter block",
+  codeLanguage: "Code language",
+  codeText: "Plain text",
+  codePlain: "text",
+  codeFilter: "Filter or type a language",
+  codeCustom: "Enter writes a word the list does not hold.",
   rowAbove: "Row above",
   rowBelow: "Row below",
   columnLeft: "Column to the left",
@@ -6212,6 +6611,7 @@ var MarkdownEditor = class _MarkdownEditor {
     this.listeners = /* @__PURE__ */ new Map();
     this.releasingTab = false;
     this.marks = options.marks !== false;
+    this.frontmatter = options.frontmatter !== false;
     this.aborter = new AbortController();
     this.uploads = options.uploads ? new Uploads(this, options.uploads) : null;
     this.uploadPanel = this.uploads ? new UploadPanel(this) : null;
@@ -6221,6 +6621,7 @@ var MarkdownEditor = class _MarkdownEditor {
     this.proofPanel = options.proof ? new ProofPanel(this) : null;
     this.tableMenu = new TableMenu(this);
     this.levelMenu = new LevelMenu(this);
+    this.codeMenu = new CodeMenu(this);
     this.tools = {
       ...defaultTools(),
       ...this.uploads ? {
@@ -6285,6 +6686,7 @@ var MarkdownEditor = class _MarkdownEditor {
     this.imagePanel.attach(signal);
     this.tableMenu.attach(signal);
     this.levelMenu.attach(signal);
+    this.codeMenu.attach(signal);
     this.toggleMarks(this.marks);
   }
   // keydown holds Tab inside the document: a tab is a character in a code
@@ -6503,6 +6905,7 @@ var MarkdownEditor = class _MarkdownEditor {
     this.linkPanel.close();
     this.tableMenu.close();
     this.levelMenu.close();
+    this.codeMenu.close();
     this.uploadPanel?.close();
     this.uploads?.destroy();
     this.aborter.abort();

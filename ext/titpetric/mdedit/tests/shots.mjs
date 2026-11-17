@@ -179,6 +179,39 @@ const SCENES = {
 		await page.locator(".mdedit__level").first().click();
 		await shot("heading", ".mdedit__levels");
 	},
+	// The language on a block, with the fences hidden: one block a word of
+	// its own, one the common bag and one that names no language.
+	code: async () => {
+		await open("welcome.md");
+		await set(
+			"## Where the build starts\n\n" +
+				"Every note goes through the same command, whatever format it arrived in. The word on the fence picks the colour, and with the markers hidden the top edge of the block carries it.\n\n" +
+				"```bash\nmake build && ./pendulum -ext jpg,png ~/notes\n```\n\n" +
+				'```json\n{"site": "cdn.si", "cache": 300}\n```\n\n' +
+				"```\na fence that names no language\n```\n\n" +
+				"A press on a label opens the languages, and the one chosen is the word the fence is written with.\n",
+			0,
+		);
+		await marks(false);
+		await shot("code");
+	},
+	// The menu the label opens, with the field filtering the list.
+	"code-menu": async () => {
+		await open("welcome.md");
+		await set(
+			"## Where the build starts\n\n" +
+				"Every note goes through the same command, whatever format it arrived in.\n\n" +
+				"```bash\nmake build && ./pendulum -ext jpg,png ~/notes\n```\n\n" +
+				'```json\n{"site": "cdn.si", "cache": 300}\n```\n\n' +
+				"The label is the word on the fence, and a press on it opens the languages. The field filters them, and a word the list does not hold is written on Enter.\n",
+			0,
+		);
+		await marks(false);
+		await page.locator(".mdedit__lang").first().click();
+		await page.waitForTimeout(150);
+		await page.keyboard.type("o");
+		await shot("code-menu", ".mdedit__langs");
+	},
 	// The table over every link in a document.
 	links: async () => {
 		await open("welcome.md");

@@ -51,21 +51,82 @@ const LANGUAGES = {
 			"array_filter", "array_merge", "json_encode", "json_decode", "preg_match",
 			"preg_replace", "file_get_contents", "file_put_contents", "var_dump"],
 	},
+	bash: {
+		declare: ["function", "local", "export", "readonly", "declare", "source", "alias"],
+		keyword: ["then", "fi", "elif", "esac", "done", "until", "select", "time", "coproc"],
+		builtin: ["echo", "printf", "read", "cd", "pwd", "test", "set", "unset", "shift",
+			"exit", "trap", "wait", "exec", "eval", "let", "true", "false", "type",
+			"kill", "sleep", "grep", "sed", "awk", "curl", "wget", "git", "make",
+			"ls", "cp", "mv", "rm", "mkdir", "chmod", "chown", "sort", "head", "tail",
+			"wc", "find", "xargs", "tee", "env", "sudo"],
+	},
+	python: {
+		declare: ["def", "lambda", "global", "nonlocal", "pass", "assert", "del", "raise", "with"],
+		keyword: ["elif", "except", "finally", "is", "not", "and", "or", "match", "case"],
+		type: ["True", "False", "None", "bytes", "bytearray", "object", "complex"],
+		builtin: ["print", "len", "range", "str", "int", "list", "dict", "tuple", "open",
+			"enumerate", "zip", "map", "filter", "sum", "min", "max", "any", "all",
+			"sorted", "isinstance", "super", "input", "format"],
+	},
+	js: {
+		declare: ["async", "await", "yield"],
+		keyword: ["instanceof", "typeof", "delete", "void"],
+		type: ["NaN", "Infinity", "Symbol", "BigInt"],
+		builtin: ["console", "JSON", "Math", "Object", "Array", "Promise", "Map", "Set",
+			"document", "window", "require", "parseInt", "parseFloat", "String", "Number"],
+	},
+	ts: {
+		declare: ["type", "namespace", "implements", "abstract", "readonly"],
+		type: ["unknown", "never", "keyof"],
+	},
+	sql: {
+		declare: ["select", "from", "where", "insert", "update", "delete", "create", "drop",
+			"alter", "table", "index", "view", "join", "group", "order", "having", "limit",
+			"offset", "union", "values", "into", "column"],
+		keyword: ["and", "or", "not", "as", "on", "by", "distinct", "primary", "key",
+			"foreign", "references", "default", "cascade", "begin", "commit", "rollback"],
+		type: ["varchar", "text", "timestamp", "date", "boolean", "serial", "bigint", "decimal", "numeric"],
+		builtin: ["count", "sum", "avg", "min", "max", "coalesce", "now"],
+	},
 };
+
+// The languages the fence menu offers, in the order it lists them. A fence
+// keeps any word a writer types; these are the ones with a bag of their own
+// or a shape the colourer reads well.
+export const FENCE_LANGUAGES = ["bash", "css", "go", "html", "js", "json", "php", "python", "sql", "ts", "yaml"];
 
 // The aliases a fence is written with.
 const ALIASES = {
 	golang: "go",
 	php5: "php",
 	php8: "php",
+	shell: "bash",
+	sh: "bash",
+	zsh: "bash",
+	console: "bash",
+	yml: "yaml",
+	javascript: "js",
+	mjs: "js",
+	node: "js",
+	typescript: "ts",
+	py: "python",
+	python3: "python",
+	plain: "text",
+	plaintext: "text",
+	txt: "text",
 };
+
+// canonical answers the name a written alias stands for.
+export function canonical(language) {
+	return ALIASES[language] ?? language;
+}
 
 const bags = new Map();
 
 // words answers the lookup table for one language: a word to the class it
 // paints in.
 function words(language) {
-	const name = ALIASES[language] ?? language;
+	const name = canonical(language);
 	if (bags.has(name)) {
 		return bags.get(name);
 	}
@@ -112,9 +173,16 @@ const TOKEN = new RegExp(
 
 // highlightCode answers the HTML for one line inside a fenced block.
 // `prefix` is the editor's CSS prefix and `language` is the word on the
-// opening fence.
+// opening fence. A fence that names no language, or names text, gets its
+// characters back uncoloured: colour is an answer to a question about the
+// language, and there is no question.
 export function highlightCode(line, prefix, language) {
-	const bag = words(language);
+	const name = canonical(language);
+	if (name === "" || name === "text") {
+		return escapeHTML(line);
+	}
+
+	const bag = words(name);
 	const tok = (name, body) => `<span class="${prefix}-c-${name}">${body}</span>`;
 
 	let out = "";
