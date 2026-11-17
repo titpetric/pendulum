@@ -8,6 +8,7 @@ vars:
   ldflags: ${LDFLAGS:--s -w}
   image: ${IMAGE:-titpetric/pendulum}
   version: ${VERSION:-$(git describe --tags --always --dirty 2>/dev/null || echo dev)}
+  check_port: ${CHECK_PORT:-18099}
 
 tasks:
   default:
@@ -65,15 +66,15 @@ tasks:
     steps:
       - atkins docker
       - docker run --rm ${{image}}:${{version}} -help 2>&1 | grep -q autosave
-      - docker run --rm -d --name ${{binary}}-check -p 18099:8080 -v "$PWD/tests/fixture:/app/contents" ${{image}}:${{version}}
+      - docker run --rm -d --name ${{binary}}-check -p ${{check_port}}:8080 -v "$PWD/tests/fixture:/app/contents" ${{image}}:${{version}}
       - |
         status=0
         for i in $(seq 1 50); do
-          curl -sf http://127.0.0.1:18099/api/list/ >/dev/null && break
+          curl -sf http://127.0.0.1:${{check_port}}/api/list/ >/dev/null && break
           sleep 0.2
         done
-        curl -sf http://127.0.0.1:18099/api/list/ | grep -q "hello.md" || status=1
-        curl -sf http://127.0.0.1:18099/ | grep -q "Pendulum" || status=1
+        curl -sf http://127.0.0.1:${{check_port}}/api/list/ | grep -q "hello.md" || status=1
+        curl -sf http://127.0.0.1:${{check_port}}/ | grep -q "Pendulum" || status=1
         docker rm -f ${{binary}}-check >/dev/null
         exit $status
       - echo "the image serves the folder it is given"
