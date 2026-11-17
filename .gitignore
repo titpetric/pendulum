@@ -2,5 +2,6 @@
 /contents
 /pendulum
 /test
-/ext/autoload.php
-/ext/composer/
+/front/ext/autoload.php
+/front/ext/composer/
+/images

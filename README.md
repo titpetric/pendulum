@@ -2,7 +2,7 @@
 
 An editor for the markdown and text files in a folder. It runs where the files are, saves them in place, and commits every save when the folder is a git repository.
 
-![Pendulum editing a post: the markdown surface with its toolbar on the left, the rendered page on the right, both drawing the same table and the same coloured code](images/pendulum.png)
+![Pendulum editing a post: the markdown surface with its toolbar on the left, the rendered page on the right, both drawing the same table and the same coloured code](https://cdn.si/titpetric/pendulum/images/pendulum.png)
 
 ## Run it
 
@@ -49,7 +49,7 @@ The listing is the folder itself. New file and New folder make one; each row car
 
 The box in the bar reads every text file under the folder for a phrase, and answers the lines that carry it with the file and line each one is on. A result opens its file. Nothing is indexed: a folder of posts is a few megabytes, and reading it costs less than keeping an index honest while an editor writes into it.
 
-![Searching the folder: five lines carrying the phrase, each with the file and line it is on](images/pendulum-search.png)
+![Searching the folder: five lines carrying the phrase, each with the file and line it is on](https://cdn.si/titpetric/pendulum/images/pendulum-search.png)
 
 ## Uploads
 
@@ -99,7 +99,9 @@ A relative image resolves against the document: beside it, in a folder named aft
 VERSION=1.2.0 IMAGE=titpetric/pendulum atkins release
 ```
 
-The frontend is HTML, CSS and ES modules under `front/`, built into the binary with `embed`. There is no node toolchain and no build step: what is in the folder is what the browser receives. `atkins deps` runs `composer update`, which installs the latest [mdedit](https://github.com/titpetric/mdedit) into `ext/titpetric/mdedit/`.
+The frontend is HTML, CSS and ES modules under `front/`, built into the binary with `embed`. There is no node toolchain and no build step: what is in the folder is what the browser receives. The Composer files are in `front/`; `atkins deps` runs `composer update` there, which installs the latest [mdedit](https://github.com/titpetric/mdedit) into `front/ext/titpetric/mdedit/`.
+
+`atkins deploy` copies `README.md` and `images/` to `https://cdn.si/titpetric/pendulum/`. The screenshots in this document are read from there, and `images/` is not kept in the repository.
 
 `atkins check` is what proves the screens after such an update. It builds the binary, serves a folder it writes itself, and drives chromium over the page: the listing, a file opened, typing, Ctrl-S and the Save button, the dirty marker, the pilcrow, the scroll sync, a pasted image and the panel over it, then the folder's own actions, the search, the preview folding and the document saving itself. Two variables point at what the machine has, where playwright and chromium are not installed beside the repository:
 

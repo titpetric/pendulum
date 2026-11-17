@@ -19,8 +19,18 @@ tasks:
 
   deps:
     desc: "Update the Composer dependencies"
+    dir: front
     steps:
       - composer update --no-interaction
+
+  deploy:
+    desc: "Deploy the README and screenshots to cdn.si"
+    vars:
+      stage: $(mktemp -d)
+    passthru: true
+    steps:
+      - rsync -a ./README.md ./images ${{stage}}/
+      - rsync -aiP -e 'ssh -p 8022' ${{stage}}/ titpetric@cdn.si:/pendulum/
 
   build:
     desc: "Build the binary into build/"

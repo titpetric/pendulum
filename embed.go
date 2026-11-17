@@ -9,7 +9,8 @@ import (
 	"io/fs"
 )
 
-//go:embed all:front all:ext/titpetric/mdedit/dist
+//go:embed front/index.html front/app.js front/style.css front/logo.svg
+//go:embed front/ext/titpetric/mdedit/dist
 var tree embed.FS
 
 // Front answers the frontend as a filesystem rooted at front/.
@@ -23,7 +24,7 @@ func Front() fs.FS {
 
 // MDEdit answers the editor's bundle as a filesystem rooted at its dist/.
 func MDEdit() fs.FS {
-	root, err := fs.Sub(tree, "ext/titpetric/mdedit/dist")
+	root, err := fs.Sub(tree, "front/ext/titpetric/mdedit/dist")
 	if err != nil {
 		panic(err)
 	}
